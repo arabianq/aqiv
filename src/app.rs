@@ -42,7 +42,7 @@ impl App {
 
         Self {
             image_uri,
-            maintain_aspect_ratio: false,
+            maintain_aspect_ratio: true,
 
             image_rotation: 0,
 
