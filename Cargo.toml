@@ -4,6 +4,7 @@ version = "1.0.0"
 edition = "2024"
 authors = ["arabian"]
 readme = "README.md"
+license = "MIT"
 keywords = ["image", "viewer", "png", "jpeg"]
 description = "Quick Simple Image Viewer"
 repository = "https://github.com/arabianq/aqiv"
