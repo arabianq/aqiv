@@ -62,6 +62,11 @@ impl App {
 
     fn handle_input(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
         ctx.input(|i| {
+            // Exit on Escape
+            if i.key_pressed(Key::Escape) {
+                std::process::exit(0);
+            }
+
             // Maintain Aspect Ratio: true -> false or false -> true
             if i.key_pressed(Key::D) {
                 self.maintain_aspect_ratio = !self.maintain_aspect_ratio;
