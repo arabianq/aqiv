@@ -6,6 +6,8 @@ authors = ["arabian"]
 readme = "README.md"
 keywords = ["image", "viewer", "png", "jpeg"]
 description = "Quick Simple Image Viewer"
+repository = "https://github.com/arabianq/aqiv"
+homepage = "https://github.com/arabianq/aqiv"
 
 [dependencies]
 egui = "0.31.1"
