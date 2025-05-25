@@ -73,6 +73,34 @@ impl App {
                     .duration(self.notifications_duration);
             }
 
+            // Flip H
+            if i.key_pressed(Key::H) {
+                if self.uv_rect.min.x == 0.0 {
+                    self.uv_rect.min.x = 1.0;
+                    self.uv_rect.max.x = 0.0;
+                } else {
+                    self.uv_rect.min.x = 0.0;
+                    self.uv_rect.max.x = 1.0;
+                }
+                self.toasts
+                    .success(format!("Flip H: {}", self.uv_rect.min.x == 1.0))
+                    .duration(self.notifications_duration);
+            }
+
+            //Flip V
+            if i.key_pressed(Key::V) {
+                if self.uv_rect.min.y == 0.0 {
+                    self.uv_rect.min.y = 1.0;
+                    self.uv_rect.max.y = 0.0;
+                } else {
+                    self.uv_rect.min.y = 0.0;
+                    self.uv_rect.max.y = 1.0;
+                }
+                self.toasts
+                    .success(format!("Flip V: {}", self.uv_rect.min.y == 1.0))
+                    .duration(self.notifications_duration);
+            }
+
             // Rotate image
             if i.key_pressed(Key::R) {
                 self.image_rotation += 1;
@@ -91,6 +119,7 @@ impl App {
                     .success("Position Offset: (0.0, 0.0)")
                     .duration(self.notifications_duration);
             }
+
             // Reset zoom
             if i.key_pressed(Key::X) {
                 self.zoom_factor = 1.0;
@@ -119,10 +148,12 @@ impl App {
             if i.key_pressed(Key::W) && i.raw_scroll_delta.y == 0.0 {
                 self.zoom_factor += self.zoom_step * self.zoom_factor;
             }
+
             // Zoom out using S
             if i.key_pressed(Key::S) && i.raw_scroll_delta.y == 0.0 {
                 self.zoom_factor -= self.zoom_step * self.zoom_factor;
             }
+
             // Clamp zoom factor
             self.zoom_factor = self.zoom_factor.clamp(0.1, 10.0);
 
@@ -134,8 +165,13 @@ impl App {
     fn render_img(&mut self, ui: &mut egui::Ui) {
         let window_size = Pos2::new(ui.available_width(), ui.available_height());
 
-        let img_rect = misc::calculate_uv_rect(window_size, self.zoom_factor, self.offset);
-        let img_size = img_rect.size();
+        let mut img_rect = misc::calculate_uv_rect(window_size, self.zoom_factor, self.offset);
+        let mut img_size = img_rect.size();
+
+        if [1u8, 3u8].contains(&self.image_rotation) {
+            img_size = Vec2::new(img_size.y, img_size.x);
+            img_rect = Rect::from_center_size(img_rect.center(), img_size);
+        }
 
         let img = Image::new(&self.image_uri)
             .maintain_aspect_ratio(self.maintain_aspect_ratio)
@@ -174,6 +210,7 @@ pub fn run(img_path: PathBuf) -> Result<(), eframe::Error> {
     options.hardware_acceleration = eframe::HardwareAcceleration::Preferred;
     options.viewport.app_id = Option::from("aqiv".to_string());
     options.viewport.inner_size = Option::from(initial_window_size);
+    options.viewport.min_inner_size = Option::from(Vec2::new(200.0, 200.0));
 
     eframe::run_native(
         format!(
