@@ -1,4 +1,4 @@
-use egui::{Image, Key, Pos2, Rect, Sense, Vec2};
+use egui::{Image, Key, Pos2, Rect, Sense, TextBuffer, Vec2};
 use egui_notify::Toasts;
 use std::path::PathBuf;
 use std::time::Duration;
@@ -38,10 +38,8 @@ impl eframe::App for App {
 
 impl App {
     pub fn new(_cc: &eframe::CreationContext<'_>, img_path: PathBuf) -> Self {
-        let image_uri = format!("file://{}", img_path.display());
-
         Self {
-            image_uri,
+            image_uri: format!("file://{}", img_path.display()),
             maintain_aspect_ratio: true,
 
             image_rotation: 0,
@@ -59,7 +57,7 @@ impl App {
             notifications_duration: Option::from(Duration::from_millis(500)),
         }
     }
-
+    
     fn handle_input(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
         ctx.input(|i| {
             // Exit on Escape
@@ -213,6 +211,7 @@ pub fn run(img_path: PathBuf) -> Result<(), eframe::Error> {
     };
     options.vsync = true;
     options.hardware_acceleration = eframe::HardwareAcceleration::Preferred;
+    options.centered = true;
     options.viewport.app_id = Option::from("aqiv".to_string());
     options.viewport.inner_size = Option::from(initial_window_size);
     options.viewport.min_inner_size = Option::from(Vec2::new(200.0, 200.0));
