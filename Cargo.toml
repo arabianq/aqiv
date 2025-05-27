@@ -6,7 +6,7 @@ authors = ["arabian"]
 readme = "README.md"
 license = "MIT"
 keywords = ["image", "viewer", "png", "jpeg"]
-description = "Quick Simple Image Viewer"
+description = "arabian's Quick Image Viewer"
 repository = "https://github.com/arabianq/aqiv"
 homepage = "https://github.com/arabianq/aqiv"
 
