@@ -22,25 +22,40 @@ pub fn calculate_uv_rect(window_size: Pos2, zoom_factor: f32, offset: Vec2) -> R
 }
 
 pub fn calculate_initial_window_size(img_path: &PathBuf) -> Vec2 {
-    let img_size = ImageReader::open(img_path)
-        .unwrap()
-        .with_guessed_format()
-        .unwrap()
-        .into_dimensions()
-        .unwrap();
+    let mut img_size: Option<(u32, u32)> = None;
+    if let Some(img_extension) = img_path.extension() {
+        if img_extension == "svg" {
+            img_size = Some((5000, 5000));
+        }
+    }
+
+    if img_size.is_none() {
+        let reader = ImageReader::open(&img_path)
+            .unwrap()
+            .with_guessed_format()
+            .unwrap();
+        img_size = Some(reader.into_dimensions().unwrap());
+    }
 
     let screen_size = screen_size::get_primary_screen_size().unwrap();
     let screen_size_vec = Vec2::new(screen_size.0 as f32, screen_size.1 as f32);
 
-    let mut initial_window_size = Vec2::new(img_size.0 as f32, img_size.1 as f32);
-    if initial_window_size.x > screen_size_vec.x {
-        initial_window_size.y = initial_window_size.y * (screen_size_vec.x / initial_window_size.x);
-        initial_window_size.x = screen_size_vec.x;
-    }
-    if initial_window_size.y > screen_size_vec.y {
-        initial_window_size.x = initial_window_size.x * (screen_size_vec.y / initial_window_size.y);
-        initial_window_size.y = screen_size_vec.y;
-    }
+    if let Some((img_width, img_height)) = img_size {
+        let mut initial_window_size = Vec2::new(img_width as f32, img_height as f32);
 
-    initial_window_size
+        if initial_window_size.x > screen_size_vec.x {
+            initial_window_size.y =
+                initial_window_size.y * (screen_size_vec.x / initial_window_size.x);
+            initial_window_size.x = screen_size_vec.x;
+        }
+        if initial_window_size.y > screen_size_vec.y {
+            initial_window_size.x =
+                initial_window_size.x * (screen_size_vec.y / initial_window_size.y);
+            initial_window_size.y = screen_size_vec.y;
+        }
+
+        initial_window_size
+    } else {
+        Vec2::new(screen_size.0 as f32, screen_size.1 as f32)
+    }
 }
