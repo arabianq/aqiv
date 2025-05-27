@@ -1,4 +1,4 @@
-use egui::{Image, Key, Pos2, Rect, Sense, TextBuffer, Vec2};
+use egui::{Image, Key, Pos2, Rect, Sense, Vec2};
 use egui_notify::Toasts;
 use std::path::PathBuf;
 use std::time::Duration;
