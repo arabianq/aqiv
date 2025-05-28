@@ -1,6 +1,6 @@
 use egui::{Pos2, Rect, Vec2};
-use std::path::PathBuf;
 use image::GenericImageView;
+use std::path::PathBuf;
 
 pub fn calculate_uv_rect(window_size: Pos2, zoom_factor: f32, offset: Vec2) -> Rect {
     let window_center = window_size / 2.0;
@@ -22,10 +22,13 @@ pub fn calculate_uv_rect(window_size: Pos2, zoom_factor: f32, offset: Vec2) -> R
 }
 
 pub fn calculate_initial_window_size(img_path: &PathBuf) -> Vec2 {
+    let screen_size = screen_size::get_primary_screen_size().unwrap();
+    let screen_size_vec = Vec2::new(screen_size.0 as f32, screen_size.1 as f32);
+
     let mut img_size: Option<(u32, u32)> = None;
     if let Some(img_extension) = img_path.extension() {
         if img_extension == "svg" {
-            img_size = Some((5000, 5000));
+            img_size = Some((screen_size_vec.x as u32, screen_size_vec.y as u32));
         }
     }
 
@@ -33,9 +36,6 @@ pub fn calculate_initial_window_size(img_path: &PathBuf) -> Vec2 {
         let img = image::open(img_path).unwrap();
         img_size = Some(img.dimensions());
     }
-
-    let screen_size = screen_size::get_primary_screen_size().unwrap();
-    let screen_size_vec = Vec2::new(screen_size.0 as f32, screen_size.1 as f32);
 
     if let Some((img_width, img_height)) = img_size {
         let mut initial_window_size = Vec2::new(img_width as f32, img_height as f32);
