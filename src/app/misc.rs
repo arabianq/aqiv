@@ -1,6 +1,6 @@
 use egui::{Pos2, Rect, Vec2};
-use image::GenericImageView;
 use std::path::PathBuf;
+use image::ImageReader;
 
 pub fn calculate_uv_rect(window_size: Pos2, zoom_factor: f32, offset: Vec2) -> Rect {
     let window_center = window_size / 2.0;
@@ -33,8 +33,11 @@ pub fn calculate_initial_window_size(img_path: &PathBuf) -> Vec2 {
     }
 
     if img_size.is_none() {
-        let img = image::open(img_path).unwrap();
-        img_size = Some(img.dimensions());
+        let reader = ImageReader::open(&img_path)
+            .unwrap()
+            .with_guessed_format()
+            .unwrap();
+        img_size = Some(reader.into_dimensions().unwrap());
     }
 
     if let Some((img_width, img_height)) = img_size {
