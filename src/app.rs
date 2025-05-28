@@ -57,7 +57,7 @@ impl App {
             notifications_duration: Option::from(Duration::from_millis(500)),
         }
     }
-    
+
     fn handle_input(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
         ctx.input(|i| {
             // Exit on Escape
