@@ -2,8 +2,8 @@ use egui::{Pos2, Rect, Vec2};
 use image::{ImageFormat, ImageReader};
 use std::path::{Path, PathBuf};
 
-pub struct ImageInfo<'a> {
-    path: &'a PathBuf,
+pub struct ImageInfo {
+    path: PathBuf,
 
     name: String,
     format: String,
@@ -25,7 +25,7 @@ pub fn get_image_info(img_path: &PathBuf) -> ImageInfo {
         let img = reader.with_guessed_format().unwrap();
 
         ImageInfo {
-            path: img_path,
+            path: img_path.clone(),
 
             name: filename,
             format: format!(
@@ -40,7 +40,7 @@ pub fn get_image_info(img_path: &PathBuf) -> ImageInfo {
         }
     } else {
         ImageInfo {
-            path: img_path,
+            path: img_path.clone(),
 
             name: filename,
             format: String::from("unknown"),
