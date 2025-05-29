@@ -87,6 +87,12 @@ impl App {
         }
     }
 
+    fn notify(&mut self, message: String) {
+        self.toasts
+            .basic(message)
+            .duration(self.notifications_duration);
+    }
+
     fn handle_input(&mut self, ui: &mut Ui, ctx: &Context) {
         ctx.input(|i| {
             // Exit on Escape
@@ -97,20 +103,16 @@ impl App {
             // Maintain Aspect Ratio: true -> false or false -> true
             if i.key_pressed(Key::D) {
                 self.maintain_aspect_ratio = !self.maintain_aspect_ratio;
-                self.toasts
-                    .success(format!(
-                        "Maintain Aspect Ratio: {}",
-                        self.maintain_aspect_ratio
-                    ))
-                    .duration(self.notifications_duration);
+                self.notify(format!(
+                    "Maintain Aspect Ratio: {}",
+                    self.maintain_aspect_ratio
+                ));
             }
 
             // Show info: true -> false or false -> true
             if i.key_pressed(Key::I) {
                 self.show_info = !self.show_info;
-                self.toasts
-                    .success(format!("Show info: {}", self.show_info))
-                    .duration(self.notifications_duration);
+                self.notify(format!("Show info: {}", self.show_info));
             }
 
             // Flip H
@@ -122,9 +124,7 @@ impl App {
                     self.uv_rect.min.x = 0.0;
                     self.uv_rect.max.x = 1.0;
                 }
-                self.toasts
-                    .success(format!("Flip H: {}", self.uv_rect.min.x == 1.0))
-                    .duration(self.notifications_duration);
+                self.notify(format!("Flip H: {}", self.uv_rect.min.x == 1.0));
             }
 
             //Flip V
@@ -136,9 +136,7 @@ impl App {
                     self.uv_rect.min.y = 0.0;
                     self.uv_rect.max.y = 1.0;
                 }
-                self.toasts
-                    .success(format!("Flip V: {}", self.uv_rect.min.y == 1.0))
-                    .duration(self.notifications_duration);
+                self.notify(format!("Flip V: {}", self.uv_rect.min.y == 1.0));
             }
 
             // Rotate image
@@ -147,25 +145,19 @@ impl App {
                 if self.image_rotation == 4 {
                     self.image_rotation = 0;
                 }
-                self.toasts
-                    .success(format!("Rotation: {} deg", self.image_rotation as u16 * 90))
-                    .duration(self.notifications_duration);
+                self.notify(format!("Rotation: {} deg", self.image_rotation as u16 * 90));
             }
 
             // Reset image position
             if i.key_pressed(Key::C) {
                 self.offset = Vec2::ZERO;
-                self.toasts
-                    .success("Position Offset: (0.0, 0.0)")
-                    .duration(self.notifications_duration);
+                self.notify(String::from("Position Offset: (0.0, 0.0)"));
             }
 
             // Reset zoom
             if i.key_pressed(Key::X) {
                 self.zoom_factor = 1.0;
-                self.toasts
-                    .success("Zoom Factor: 1.0")
-                    .duration(self.notifications_duration);
+                self.notify(String::from("Zoom Factor: 1.0"));
             }
 
             // Mouse wheel zoom
