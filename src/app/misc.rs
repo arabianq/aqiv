@@ -71,7 +71,7 @@ pub fn calculate_uv_rect(window_size: Pos2, zoom_factor: f32, offset: Vec2) -> R
 }
 
 pub fn calculate_initial_window_size(img_path: &PathBuf) -> Vec2 {
-    let screen_size = screen_size::get_primary_screen_size().unwrap();
+    let screen_size = screen_size::get_primary_screen_size().unwrap_or_default();
     let screen_size_vec = Vec2::new(screen_size.0 as f32, screen_size.1 as f32);
 
     let mut img_size: Option<(u32, u32)> = None;
