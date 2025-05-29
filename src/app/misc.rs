@@ -1,6 +1,55 @@
 use egui::{Pos2, Rect, Vec2};
-use std::path::PathBuf;
-use image::ImageReader;
+use image::{ImageFormat, ImageReader};
+use std::path::{Path, PathBuf};
+
+pub struct ImageInfo<'a> {
+    path: &'a PathBuf,
+
+    name: String,
+    format: String,
+
+    size: u64,
+    resolution: (u32, u32),
+}
+
+pub fn get_image_info(img_path: &PathBuf) -> ImageInfo {
+    let filename = img_path
+        .file_name()
+        .unwrap_or_default()
+        .to_str()
+        .unwrap_or_default()
+        .to_string();
+    let filesize = img_path.metadata().unwrap().len();
+
+    if let Some(reader) = ImageReader::open(img_path).ok() {
+        let img = reader.with_guessed_format().unwrap();
+
+        ImageInfo {
+            path: img_path,
+
+            name: filename,
+            format: format!(
+                "{:?}",
+                img.format().unwrap_or(
+                    ImageFormat::from_extension(img_path.extension().unwrap_or_default()).unwrap()
+                )
+            ),
+
+            size: filesize,
+            resolution: img.into_dimensions().unwrap_or_default(),
+        }
+    } else {
+        ImageInfo {
+            path: img_path,
+
+            name: filename,
+            format: String::from("unknown"),
+
+            size: filesize,
+            resolution: (0, 0),
+        }
+    }
+}
 
 pub fn calculate_uv_rect(window_size: Pos2, zoom_factor: f32, offset: Vec2) -> Rect {
     let window_center = window_size / 2.0;
