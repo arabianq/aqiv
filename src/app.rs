@@ -281,7 +281,7 @@ pub fn run(img_path: PathBuf) -> Result<(), eframe::Error> {
     options.viewport.app_id = Option::from("aqiv".to_string());
     options.viewport.inner_size = Option::from(initial_window_size);
     options.viewport.min_inner_size = Option::from(Vec2::new(200.0, 200.0));
-
+    
     eframe::run_native(
         format!(
             "Quick Image Viewer - {}",
@@ -290,6 +290,10 @@ pub fn run(img_path: PathBuf) -> Result<(), eframe::Error> {
         .as_str(),
         options,
         Box::new(|cc| {
+            cc.egui_ctx.options_mut(|options| {
+                options.reduce_texture_memory = true;
+            });
+            
             egui_extras::install_image_loaders(&cc.egui_ctx);
             Ok(Box::new(App::new(cc, img_path, img_info)))
         }),
