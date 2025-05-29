@@ -1,15 +1,16 @@
 use egui::{Pos2, Rect, Vec2};
 use image::{ImageFormat, ImageReader};
-use std::path::{Path, PathBuf};
+use std::fmt::Write;
+use std::path::{PathBuf, absolute};
 
 pub struct ImageInfo {
-    path: PathBuf,
+    pub path: PathBuf,
 
-    name: String,
-    format: String,
+    pub name: String,
+    pub format: String,
 
-    size: u64,
-    resolution: (u32, u32),
+    pub size: u64,
+    pub resolution: (u32, u32),
 }
 
 pub fn get_image_info(img_path: &PathBuf) -> ImageInfo {
@@ -25,7 +26,7 @@ pub fn get_image_info(img_path: &PathBuf) -> ImageInfo {
         let img = reader.with_guessed_format().unwrap();
 
         ImageInfo {
-            path: img_path.clone(),
+            path: absolute(img_path).unwrap(),
 
             name: filename,
             format: format!(
@@ -40,7 +41,7 @@ pub fn get_image_info(img_path: &PathBuf) -> ImageInfo {
         }
     } else {
         ImageInfo {
-            path: img_path.clone(),
+            path: absolute(img_path).unwrap(),
 
             name: filename,
             format: String::from("unknown"),
@@ -104,4 +105,28 @@ pub fn calculate_initial_window_size(img_path: &PathBuf) -> Vec2 {
     } else {
         Vec2::new(screen_size.0 as f32, screen_size.1 as f32)
     }
+}
+
+pub fn convert_size(size_bytes: f64) -> String {
+    if size_bytes <= 0.0 {
+        return "-".to_string();
+    }
+
+    const UNITS: [&str; 4] = ["B", "KB", "MB", "GB"];
+
+    let i = if size_bytes < 1.0 {
+        0 // treat anything < 1 as 0 bytes
+    } else {
+        (size_bytes.log(1024.0).floor()) as usize
+    };
+
+    let i = i.min(UNITS.len().saturating_sub(1));
+
+    let p = 1024_f64.powf(i as f64);
+    let s = (size_bytes / p).round();
+
+    let mut buffer = String::with_capacity(10);
+    write!(&mut buffer, "{:.2} {}", s / 100.0, UNITS[i]).unwrap();
+
+    buffer
 }
