@@ -1,13 +1,27 @@
-use egui::{Image, Key, Pos2, Rect, Sense, Vec2};
+mod misc;
+
+use egui::{
+    Align, CentralPanel, Color32, Context, Frame, Image, Key, Layout, Pos2, Rect, RichText, Sense,
+    Ui, UiBuilder, Vec2,
+};
 use egui_notify::Toasts;
+use misc::{
+    ImageInfo, calculate_initial_window_size, calculate_uv_rect, convert_size, get_image_info,
+};
 use std::path::PathBuf;
 use std::time::Duration;
 
-mod misc;
-
 struct App {
+    window_size: Vec2,
+
+    background_color: Color32,
+
+    image_info: ImageInfo,
+
     image_uri: String,
+
     maintain_aspect_ratio: bool,
+    show_info: bool,
 
     image_rotation: u8,
 
@@ -25,22 +39,37 @@ struct App {
 }
 
 impl eframe::App for App {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        egui::CentralPanel::default()
-            .frame(egui::Frame::new().fill(egui::Color32::BLACK))
+    fn update(&mut self, ctx: &Context, _frame: &mut eframe::Frame) {
+        CentralPanel::default()
+            .frame(Frame::new().fill(self.background_color))
             .show(ctx, |ui| {
+                self.window_size = ui.available_size();
+
                 self.handle_input(ui, ctx); // Handle all input, including keybindings
                 self.render_img(ui); // Render image
+
+                if self.show_info {
+                    self.render_info(ui);
+                }
+
                 self.toasts.show(ctx); // Show all notifications
             });
     }
 }
 
 impl App {
-    pub fn new(_cc: &eframe::CreationContext<'_>, img_path: PathBuf) -> Self {
+    pub fn new(_cc: &eframe::CreationContext<'_>, img_path: PathBuf, img_info: ImageInfo) -> Self {
         Self {
+            window_size: Vec2::ZERO,
+
+            background_color: Color32::from_hex("#1B1B1B").unwrap_or(Color32::BLACK),
+
+            image_info: img_info,
+
             image_uri: format!("file://{}", img_path.display()),
+
             maintain_aspect_ratio: true,
+            show_info: false,
 
             image_rotation: 0,
 
@@ -57,8 +86,8 @@ impl App {
             notifications_duration: Option::from(Duration::from_millis(500)),
         }
     }
-    
-    fn handle_input(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
+
+    fn handle_input(&mut self, ui: &mut Ui, ctx: &Context) {
         ctx.input(|i| {
             // Exit on Escape
             if i.key_pressed(Key::Escape) {
@@ -73,6 +102,14 @@ impl App {
                         "Maintain Aspect Ratio: {}",
                         self.maintain_aspect_ratio
                     ))
+                    .duration(self.notifications_duration);
+            }
+
+            // Show info: true -> false or false -> true
+            if i.key_pressed(Key::I) {
+                self.show_info = !self.show_info;
+                self.toasts
+                    .success(format!("Show info: {}", self.show_info))
                     .duration(self.notifications_duration);
             }
 
@@ -165,10 +202,9 @@ impl App {
         });
     }
 
-    fn render_img(&mut self, ui: &mut egui::Ui) {
-        let window_size = Pos2::new(ui.available_width(), ui.available_height());
-
-        let mut img_rect = misc::calculate_uv_rect(window_size, self.zoom_factor, self.offset);
+    fn render_img(&mut self, ui: &mut Ui) {
+        let mut img_rect =
+            calculate_uv_rect(self.window_size.to_pos2(), self.zoom_factor, self.offset);
         let mut img_size = img_rect.size();
 
         if [1u8, 3u8].contains(&self.image_rotation) {
@@ -186,8 +222,10 @@ impl App {
             );
 
         // Creating full screen area to handle dragging
-        let full_area_rect =
-            Rect::from_min_size(Pos2::ZERO, Vec2::new(window_size.x, window_size.y));
+        let full_area_rect = Rect::from_min_size(
+            Pos2::ZERO,
+            Vec2::new(self.window_size.x, self.window_size.y),
+        );
         let full_area_response = ui.allocate_rect(full_area_rect, Sense::drag());
 
         // Handle dragging
@@ -201,10 +239,46 @@ impl App {
         // Show image
         ui.put(img_rect, img);
     }
+
+    fn render_info(&mut self, ui: &mut Ui) {
+        let info_rect = Rect::from_min_max(
+            Pos2::new(0.0, self.window_size.y - 100.0),
+            Pos2::new(self.window_size.x, self.window_size.y),
+        );
+
+        let info_text = RichText::new(format!(
+            "Name: {}\nFormat: {}\nFile Size: {}\nResolution: {}\nPath: {}",
+            self.image_info.name,
+            self.image_info.format,
+            convert_size(self.image_info.size as f64),
+            format!(
+                "{}x{}",
+                self.image_info.resolution.0, self.image_info.resolution.1
+            ),
+            self.image_info.path.display()
+        ))
+        .color(Color32::WHITE);
+
+        ui.allocate_new_ui(UiBuilder::new().max_rect(info_rect), |ui| {
+            Frame::new()
+                .fill(self.background_color)
+                .multiply_with_opacity(0.95)
+                .corner_radius(15.0)
+                .inner_margin(10)
+                .outer_margin(5)
+                .show(ui, |ui| {
+                    let layout = Layout::left_to_right(Align::Min);
+                    ui.with_layout(layout, |ui| {
+                        ui.label(info_text);
+                    });
+                });
+        });
+    }
 }
 
 pub fn run(img_path: PathBuf) -> Result<(), eframe::Error> {
-    let initial_window_size = misc::calculate_initial_window_size(&img_path);
+    let initial_window_size = calculate_initial_window_size(&img_path);
+    let img_info = get_image_info(&img_path);
 
     let mut options = eframe::NativeOptions {
         ..Default::default()
@@ -225,7 +299,7 @@ pub fn run(img_path: PathBuf) -> Result<(), eframe::Error> {
         options,
         Box::new(|cc| {
             egui_extras::install_image_loaders(&cc.egui_ctx);
-            Ok(Box::new(App::new(cc, img_path)))
+            Ok(Box::new(App::new(cc, img_path, img_info)))
         }),
     )
 }
