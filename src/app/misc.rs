@@ -82,11 +82,8 @@ pub fn calculate_initial_window_size(img_path: &PathBuf) -> Vec2 {
     }
 
     if img_size.is_none() {
-        let reader = ImageReader::open(&img_path)
-            .unwrap()
-            .with_guessed_format()
-            .unwrap();
-        img_size = Some(reader.into_dimensions().unwrap());
+        let img_info = get_image_info(img_path);
+        img_size = Some(img_info.resolution);
     }
 
     if let Some((img_width, img_height)) = img_size {
