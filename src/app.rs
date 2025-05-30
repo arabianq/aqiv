@@ -93,6 +93,59 @@ impl App {
             .duration(self.notifications_duration);
     }
 
+    fn toggle_maintain_aspect_ratio(&mut self) {
+        self.maintain_aspect_ratio = !self.maintain_aspect_ratio;
+        self.notify(format!(
+            "Maintain Aspect Ratio: {}",
+            self.maintain_aspect_ratio
+        ));
+    }
+
+    fn toggle_show_info(&mut self) {
+        self.show_info = !self.show_info;
+        self.notify(format!("Show info: {}", self.show_info));
+    }
+
+    fn flip_horizontal(&mut self) {
+        if self.uv_rect.min.x == 0.0 {
+            self.uv_rect.min.x = 1.0;
+            self.uv_rect.max.x = 0.0;
+        } else {
+            self.uv_rect.min.x = 0.0;
+            self.uv_rect.max.x = 1.0;
+        }
+        self.notify(format!("Flip H: {}", self.uv_rect.min.x == 1.0));
+    }
+
+    fn flip_vertical(&mut self) {
+        if self.uv_rect.min.y == 0.0 {
+            self.uv_rect.min.y = 1.0;
+            self.uv_rect.max.y = 0.0;
+        } else {
+            self.uv_rect.min.y = 0.0;
+            self.uv_rect.max.y = 1.0;
+        }
+        self.notify(format!("Flip V: {}", self.uv_rect.min.y == 1.0));
+    }
+
+    fn rotate_image(&mut self) {
+        self.image_rotation += 1;
+        if self.image_rotation == 4 {
+            self.image_rotation = 0;
+        }
+        self.notify(format!("Rotation: {} deg", self.image_rotation as u16 * 90));
+    }
+
+    fn reset_offset(&mut self) {
+        self.offset = Vec2::ZERO;
+        self.notify(String::from("Position Offset: (0.0, 0.0)"));
+    }
+
+    fn reset_zoom(&mut self) {
+        self.zoom_factor = 1.0;
+        self.notify(String::from("Zoom Factor: 1.0"));
+    }
+
     fn handle_input(&mut self, ui: &mut Ui, ctx: &Context) {
         ctx.input(|i| {
             // Exit on Escape
@@ -100,67 +153,42 @@ impl App {
                 std::process::exit(0);
             }
 
-            // Maintain Aspect Ratio: true -> false or false -> true
+            // Maintain Aspect Ratio on D
             if i.key_pressed(Key::D) {
-                self.maintain_aspect_ratio = !self.maintain_aspect_ratio;
-                self.notify(format!(
-                    "Maintain Aspect Ratio: {}",
-                    self.maintain_aspect_ratio
-                ));
+                self.toggle_maintain_aspect_ratio();
             }
 
-            // Show info: true -> false or false -> true
+            // Show Info on I
             if i.key_pressed(Key::I) {
-                self.show_info = !self.show_info;
-                self.notify(format!("Show info: {}", self.show_info));
+                self.toggle_show_info();
             }
 
-            // Flip H
+            // Horizontal Flip on H
             if i.key_pressed(Key::H) {
-                if self.uv_rect.min.x == 0.0 {
-                    self.uv_rect.min.x = 1.0;
-                    self.uv_rect.max.x = 0.0;
-                } else {
-                    self.uv_rect.min.x = 0.0;
-                    self.uv_rect.max.x = 1.0;
-                }
-                self.notify(format!("Flip H: {}", self.uv_rect.min.x == 1.0));
+                self.flip_horizontal();
             }
 
-            //Flip V
+            // Vertical Flip on V
             if i.key_pressed(Key::V) {
-                if self.uv_rect.min.y == 0.0 {
-                    self.uv_rect.min.y = 1.0;
-                    self.uv_rect.max.y = 0.0;
-                } else {
-                    self.uv_rect.min.y = 0.0;
-                    self.uv_rect.max.y = 1.0;
-                }
-                self.notify(format!("Flip V: {}", self.uv_rect.min.y == 1.0));
+                self.flip_vertical();
             }
 
-            // Rotate image
+            // Image rotation on R
             if i.key_pressed(Key::R) {
-                self.image_rotation += 1;
-                if self.image_rotation == 4 {
-                    self.image_rotation = 0;
-                }
-                self.notify(format!("Rotation: {} deg", self.image_rotation as u16 * 90));
+                self.rotate_image();
             }
 
-            // Reset image position
+            // Reset offset on C
             if i.key_pressed(Key::C) {
-                self.offset = Vec2::ZERO;
-                self.notify(String::from("Position Offset: (0.0, 0.0)"));
+                self.reset_offset();
             }
 
-            // Reset zoom
+            // Reset zoom on X
             if i.key_pressed(Key::X) {
-                self.zoom_factor = 1.0;
-                self.notify(String::from("Zoom Factor: 1.0"));
+                self.reset_zoom();
             }
 
-            // Mouse wheel zoom
+            // Zoom handler
             let scroll = i.raw_scroll_delta.y;
             if scroll != 0.0 {
                 let old_zoom = self.zoom_factor;
@@ -176,20 +204,18 @@ impl App {
                 self.zoom_factor = new_zoom;
             }
 
-            // Zoom in using W
+            // Zoom in on W
             if i.key_pressed(Key::W) && i.raw_scroll_delta.y == 0.0 {
                 self.zoom_factor += self.zoom_step * self.zoom_factor;
             }
 
-            // Zoom out using S
+            // Zoom out on S
             if i.key_pressed(Key::S) && i.raw_scroll_delta.y == 0.0 {
                 self.zoom_factor -= self.zoom_step * self.zoom_factor;
             }
 
-            // Clamp zoom factor
             self.zoom_factor = self.zoom_factor.clamp(0.1, 10.0);
 
-            // Is mouse left down
             self.dragging = i.pointer.primary_down();
         });
     }
