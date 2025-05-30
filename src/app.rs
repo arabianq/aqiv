@@ -1,6 +1,7 @@
-mod misc;
 mod config;
+mod misc;
 
+use config::AppConfig;
 use egui::{
     Align, CentralPanel, Color32, Context, Frame, Image, Key, Layout, Pos2, Rect, RichText, Sense,
     Ui, UiBuilder, Vec2,
@@ -62,6 +63,8 @@ impl eframe::App for App {
 
 impl App {
     pub fn new(_cc: &eframe::CreationContext<'_>, img_path: PathBuf, img_info: ImageInfo) -> Self {
+        let cfg = AppConfig::default();
+
         let image_state = ImageState {
             info: img_info,
 
@@ -76,14 +79,16 @@ impl App {
 
         let app_state = AppState {
             window_size: Vec2::ZERO,
-            background_color: Color32::from_hex("#1B1B1B").unwrap_or(Color32::BLACK),
+            background_color: cfg.background_color,
 
-            maintain_aspect_ratio: true,
-            show_info: false,
+            maintain_aspect_ratio: cfg.maintain_aspect_ratio,
+            show_info: cfg.show_info,
             dragging: false,
 
             toasts: Toasts::default(),
-            notification_duration: Option::from(Duration::from_millis(500)),
+            notification_duration: Option::from(Duration::from_millis(
+                cfg.notification_duration_millis,
+            )),
         };
 
         Self {
