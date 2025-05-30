@@ -1,4 +1,5 @@
 mod misc;
+mod config;
 
 use egui::{
     Align, CentralPanel, Color32, Context, Frame, Image, Key, Layout, Pos2, Rect, RichText, Sense,
@@ -11,138 +12,146 @@ use misc::{
 use std::path::PathBuf;
 use std::time::Duration;
 
-struct App {
+struct ImageState {
+    info: ImageInfo,
+
+    uri: String,
+
+    rotation: u8,
+    zoom_factor: f32,
+
+    uv_rect: Rect,
+    offset: Vec2,
+}
+
+struct AppState {
     window_size: Vec2,
-
     background_color: Color32,
-
-    image_info: ImageInfo,
-
-    image_uri: String,
 
     maintain_aspect_ratio: bool,
     show_info: bool,
-
-    image_rotation: u8,
-
-    uv_rect: Rect,
-
-    zoom_factor: f32,
-    zoom_step: f32,
-
-    offset: Vec2,
-
     dragging: bool,
 
     toasts: Toasts,
-    notifications_duration: Option<Duration>,
+    notification_duration: Option<Duration>,
+}
+
+struct App {
+    app_state: AppState,
+    image_state: ImageState,
 }
 
 impl eframe::App for App {
     fn update(&mut self, ctx: &Context, _frame: &mut eframe::Frame) {
         CentralPanel::default()
-            .frame(Frame::new().fill(self.background_color))
+            .frame(Frame::new().fill(self.app_state.background_color))
             .show(ctx, |ui| {
-                self.window_size = ui.available_size();
+                self.app_state.window_size = ui.available_size();
 
                 self.handle_input(ui, ctx); // Handle all input, including keybindings
                 self.render_img(ui); // Render image
 
-                if self.show_info {
+                if self.app_state.show_info {
                     self.render_info(ui);
                 }
 
-                self.toasts.show(ctx); // Show all notifications
+                self.app_state.toasts.show(ctx); // Show all notifications
             });
     }
 }
 
 impl App {
     pub fn new(_cc: &eframe::CreationContext<'_>, img_path: PathBuf, img_info: ImageInfo) -> Self {
-        Self {
+        let image_state = ImageState {
+            info: img_info,
+
+            uri: format!("file://{}", img_path.display()),
+
+            rotation: 0,
+            zoom_factor: 1.0,
+
+            uv_rect: Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)),
+            offset: Vec2::ZERO,
+        };
+
+        let app_state = AppState {
             window_size: Vec2::ZERO,
-
             background_color: Color32::from_hex("#1B1B1B").unwrap_or(Color32::BLACK),
-
-            image_info: img_info,
-
-            image_uri: format!("file://{}", img_path.display()),
 
             maintain_aspect_ratio: true,
             show_info: false,
-
-            image_rotation: 0,
-
-            uv_rect: Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)),
-
-            zoom_factor: 1.0,
-            zoom_step: 0.1,
-
-            offset: Vec2::ZERO,
-
             dragging: false,
 
             toasts: Toasts::default(),
-            notifications_duration: Option::from(Duration::from_millis(500)),
+            notification_duration: Option::from(Duration::from_millis(500)),
+        };
+
+        Self {
+            app_state,
+            image_state,
         }
     }
 
     fn notify(&mut self, message: String) {
-        self.toasts
+        self.app_state
+            .toasts
             .basic(message)
-            .duration(self.notifications_duration);
+            .duration(self.app_state.notification_duration);
     }
 
     fn toggle_maintain_aspect_ratio(&mut self) {
-        self.maintain_aspect_ratio = !self.maintain_aspect_ratio;
+        self.app_state.maintain_aspect_ratio = !self.app_state.maintain_aspect_ratio;
         self.notify(format!(
             "Maintain Aspect Ratio: {}",
-            self.maintain_aspect_ratio
+            self.app_state.maintain_aspect_ratio
         ));
     }
 
     fn toggle_show_info(&mut self) {
-        self.show_info = !self.show_info;
-        self.notify(format!("Show info: {}", self.show_info));
+        self.app_state.show_info = !self.app_state.show_info;
+        self.notify(format!("Show info: {}", self.app_state.show_info));
     }
 
     fn flip_horizontal(&mut self) {
-        if self.uv_rect.min.x == 0.0 {
-            self.uv_rect.min.x = 1.0;
-            self.uv_rect.max.x = 0.0;
+        if self.image_state.uv_rect.min.x == 0.0 {
+            self.image_state.uv_rect.min.x = 1.0;
+            self.image_state.uv_rect.max.x = 0.0;
         } else {
-            self.uv_rect.min.x = 0.0;
-            self.uv_rect.max.x = 1.0;
+            self.image_state.uv_rect.min.x = 0.0;
+            self.image_state.uv_rect.max.x = 1.0;
         }
-        self.notify(format!("Flip H: {}", self.uv_rect.min.x == 1.0));
+        self.notify(format!("Flip H: {}", self.image_state.uv_rect.min.x == 1.0));
     }
 
     fn flip_vertical(&mut self) {
-        if self.uv_rect.min.y == 0.0 {
-            self.uv_rect.min.y = 1.0;
-            self.uv_rect.max.y = 0.0;
+        if self.image_state.uv_rect.min.y == 0.0 {
+            self.image_state.uv_rect.min.y = 1.0;
+            self.image_state.uv_rect.max.y = 0.0;
         } else {
-            self.uv_rect.min.y = 0.0;
-            self.uv_rect.max.y = 1.0;
+            self.image_state.uv_rect.min.y = 0.0;
+            self.image_state.uv_rect.max.y = 1.0;
         }
-        self.notify(format!("Flip V: {}", self.uv_rect.min.y == 1.0));
+        self.notify(format!("Flip V: {}", self.image_state.uv_rect.min.y == 1.0));
     }
 
     fn rotate_image(&mut self) {
-        self.image_rotation += 1;
-        if self.image_rotation == 4 {
-            self.image_rotation = 0;
+        self.image_state.rotation += 1;
+        if self.image_state.rotation == 4 {
+            self.image_state.rotation = 0;
         }
-        self.notify(format!("Rotation: {} deg", self.image_rotation as u16 * 90));
+        self.notify(format!(
+            "Rotation: {} deg",
+            self.image_state.rotation as u16 * 90
+        ));
     }
 
     fn reset_offset(&mut self) {
-        self.offset = Vec2::ZERO;
+        self.image_state.offset = Vec2::ZERO;
         self.notify(String::from("Position Offset: (0.0, 0.0)"));
     }
 
     fn reset_zoom(&mut self) {
-        self.zoom_factor = 1.0;
+        self.image_state.zoom_factor = 1.0;
         self.notify(String::from("Zoom Factor: 1.0"));
     }
 
@@ -191,67 +200,69 @@ impl App {
             // Zoom handler
             let scroll = i.raw_scroll_delta.y;
             if scroll != 0.0 {
-                let old_zoom = self.zoom_factor;
-                let new_zoom =
-                    (old_zoom * (1.0 + scroll.signum() * self.zoom_step)).clamp(0.1, 10.0);
+                let old_zoom = self.image_state.zoom_factor;
+                let new_zoom = (old_zoom * (1.0 + scroll.signum() * 0.1)).clamp(0.1, 10.0);
 
                 if let Some(mouse_pos) = i.pointer.interact_pos() {
                     let window_center = (ui.available_size() / 2.0).to_pos2();
                     let delta = mouse_pos - window_center;
-                    self.offset += delta * (1.0 / new_zoom - 1.0 / old_zoom);
+                    self.image_state.offset += delta * (1.0 / new_zoom - 1.0 / old_zoom);
                 }
 
-                self.zoom_factor = new_zoom;
+                self.image_state.zoom_factor = new_zoom;
             }
 
             // Zoom in on W
             if i.key_pressed(Key::W) && i.raw_scroll_delta.y == 0.0 {
-                self.zoom_factor += self.zoom_step * self.zoom_factor;
+                self.image_state.zoom_factor += 0.1 * self.image_state.zoom_factor;
             }
 
             // Zoom out on S
             if i.key_pressed(Key::S) && i.raw_scroll_delta.y == 0.0 {
-                self.zoom_factor -= self.zoom_step * self.zoom_factor;
+                self.image_state.zoom_factor -= 0.1 * self.image_state.zoom_factor;
             }
 
-            self.zoom_factor = self.zoom_factor.clamp(0.1, 10.0);
+            self.image_state.zoom_factor = self.image_state.zoom_factor.clamp(0.1, 10.0);
 
-            self.dragging = i.pointer.primary_down();
+            self.app_state.dragging = i.pointer.primary_down();
         });
     }
 
     fn render_img(&mut self, ui: &mut Ui) {
-        let mut img_rect =
-            calculate_uv_rect(self.window_size.to_pos2(), self.zoom_factor, self.offset);
+        let mut img_rect = calculate_uv_rect(
+            self.app_state.window_size.to_pos2(),
+            self.image_state.zoom_factor,
+            self.image_state.offset,
+        );
         let mut img_size = img_rect.size();
 
-        if [1u8, 3u8].contains(&self.image_rotation) {
+        if [1u8, 3u8].contains(&self.image_state.rotation) {
             img_size = Vec2::new(img_size.y, img_size.x);
             img_rect = Rect::from_center_size(img_rect.center(), img_size);
         }
 
-        let img = Image::new(&self.image_uri)
-            .maintain_aspect_ratio(self.maintain_aspect_ratio)
+        let img = Image::new(&self.image_state.uri)
+            .maintain_aspect_ratio(self.app_state.maintain_aspect_ratio)
             .fit_to_exact_size(img_size)
-            .uv(self.uv_rect)
+            .uv(self.image_state.uv_rect)
             .rotate(
-                self.image_rotation as f32 * std::f32::consts::PI / 2.0,
+                self.image_state.rotation as f32 * std::f32::consts::PI / 2.0,
                 Vec2::splat(0.5),
             );
 
         // Creating full screen area to handle dragging
         let full_area_rect = Rect::from_min_size(
             Pos2::ZERO,
-            Vec2::new(self.window_size.x, self.window_size.y),
+            Vec2::new(self.app_state.window_size.x, self.app_state.window_size.y),
         );
         let full_area_response = ui.allocate_rect(full_area_rect, Sense::drag());
 
         // Handle dragging
-        if full_area_response.dragged() && self.dragging {
+        if full_area_response.dragged() && self.app_state.dragging {
             let delta = full_area_response.drag_motion();
-            self.offset += delta / self.zoom_factor;
-            self.offset.x = self.offset.x.clamp(-500.0, 500.0);
-            self.offset.y = self.offset.y.clamp(-500.0, 500.0);
+            self.image_state.offset += delta / self.image_state.zoom_factor;
+            self.image_state.offset.x = self.image_state.offset.x.clamp(-500.0, 500.0);
+            self.image_state.offset.y = self.image_state.offset.y.clamp(-500.0, 500.0);
         }
 
         // Show image
@@ -260,26 +271,26 @@ impl App {
 
     fn render_info(&mut self, ui: &mut Ui) {
         let info_rect = Rect::from_min_max(
-            Pos2::new(0.0, self.window_size.y - 100.0),
-            Pos2::new(self.window_size.x, self.window_size.y),
+            Pos2::new(0.0, self.app_state.window_size.y - 100.0),
+            Pos2::new(self.app_state.window_size.x, self.app_state.window_size.y),
         );
 
         let info_text = RichText::new(format!(
             "Name: {}\nFormat: {}\nFile Size: {}\nResolution: {}\nPath: {}",
-            self.image_info.name,
-            self.image_info.format,
-            convert_size(self.image_info.size as f64),
+            self.image_state.info.name,
+            self.image_state.info.format,
+            convert_size(self.image_state.info.size as f64),
             format!(
                 "{}x{}",
-                self.image_info.resolution.0, self.image_info.resolution.1
+                self.image_state.info.resolution.0, self.image_state.info.resolution.1
             ),
-            self.image_info.path.display()
+            self.image_state.info.path.display()
         ))
         .color(Color32::WHITE);
 
         ui.allocate_new_ui(UiBuilder::new().max_rect(info_rect), |ui| {
             Frame::new()
-                .fill(self.background_color)
+                .fill(self.app_state.background_color)
                 .multiply_with_opacity(0.95)
                 .corner_radius(15.0)
                 .inner_margin(10)
