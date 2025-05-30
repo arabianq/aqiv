@@ -8,13 +8,15 @@ fn main() -> Result<(), eframe::Error> {
     let args: Vec<String> = env::args().skip(1).collect();
 
     if args.is_empty() {
-        panic!("No file path provided!")
+        println!("No file path provided!");
+        std::process::exit(-1);
     }
 
     let file_path = Path::new(&args[0]).to_path_buf();
 
     if !file_path.exists() {
-        panic!("File {:?}  does not exist!", file_path);
+        println!("File {:?}  does not exist!", file_path);
+        std::process::exit(-1);
     }
 
     app::run(file_path)
