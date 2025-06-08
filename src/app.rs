@@ -264,7 +264,10 @@ impl App {
 
         // Handle dragging
         if full_area_response.dragged() && self.app_state.dragging {
+            ui.ctx().set_cursor_icon(egui::CursorIcon::Grabbing);
+
             let delta = full_area_response.drag_motion();
+            
             self.image_state.offset += delta / self.image_state.zoom_factor;
             self.image_state.offset.x = self.image_state.offset.x.clamp(-500.0, 500.0);
             self.image_state.offset.y = self.image_state.offset.y.clamp(-500.0, 500.0);
@@ -318,12 +321,12 @@ pub fn run(img_path: PathBuf) -> Result<(), eframe::Error> {
         vsync: true,
         centered: true,
         hardware_acceleration: eframe::HardwareAcceleration::Preferred,
-        
+
         viewport: egui::ViewportBuilder::default()
             .with_app_id("aqiv")
             .with_inner_size(initial_window_size)
             .with_min_inner_size(Vec2::new(200.0, 200.0)),
-        
+
         ..Default::default()
     };
 

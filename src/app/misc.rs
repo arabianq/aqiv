@@ -115,9 +115,9 @@ pub fn convert_size(size_bytes: f64) -> String {
     const UNITS: [&str; 4] = ["B", "KB", "MB", "GB"];
 
     let i = if size_bytes < 1.0 {
-        0 // treat anything < 1 as 0 bytes
+        0
     } else {
-        (size_bytes.log(1024.0).floor()) as usize
+        size_bytes.log(1024.0).floor() as usize
     };
 
     let i = i.min(UNITS.len().saturating_sub(1));
