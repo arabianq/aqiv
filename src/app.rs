@@ -266,7 +266,7 @@ impl App {
         if full_area_response.dragged() && self.app_state.dragging {
             ui.ctx().set_cursor_icon(egui::CursorIcon::Grabbing);
 
-            let delta = full_area_response.drag_motion();
+            let delta = full_area_response.drag_delta();
             
             self.image_state.offset += delta / self.image_state.zoom_factor;
             self.image_state.offset.x = self.image_state.offset.x.clamp(-500.0, 500.0);
