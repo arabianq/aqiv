@@ -314,15 +314,18 @@ pub fn run(img_path: PathBuf) -> Result<(), eframe::Error> {
     let initial_window_size = calculate_initial_window_size(&img_path);
     let img_info = get_image_info(&img_path);
 
-    let mut options = eframe::NativeOptions {
+    let options = eframe::NativeOptions {
+        vsync: true,
+        centered: true,
+        hardware_acceleration: eframe::HardwareAcceleration::Preferred,
+        
+        viewport: egui::ViewportBuilder::default()
+            .with_app_id("aqiv")
+            .with_inner_size(initial_window_size)
+            .with_min_inner_size(Vec2::new(200.0, 200.0)),
+        
         ..Default::default()
     };
-    options.vsync = true;
-    options.hardware_acceleration = eframe::HardwareAcceleration::Preferred;
-    options.centered = true;
-    options.viewport.app_id = Option::from("aqiv".to_string());
-    options.viewport.inner_size = Option::from(initial_window_size);
-    options.viewport.min_inner_size = Option::from(Vec2::new(200.0, 200.0));
 
     eframe::run_native(
         format!(
