@@ -1,5 +1,6 @@
 use egui::{Pos2, Rect, Vec2};
 use image::{ImageFormat, ImageReader};
+use std::ffi::OsStr;
 use std::fmt::Write;
 use std::path::{PathBuf, absolute};
 
@@ -17,24 +18,30 @@ pub fn get_image_info(img_path: &PathBuf) -> ImageInfo {
     let filename = img_path
         .file_name()
         .unwrap_or_default()
-        .to_str()
-        .unwrap_or_default()
+        .to_string_lossy()
         .to_string();
     let filesize = img_path.metadata().unwrap().len();
 
     if let Some(reader) = ImageReader::open(img_path).ok() {
         let img = reader.with_guessed_format().unwrap();
+        let img_extension = img_path.extension().unwrap_or_default();
+        let img_format: String;
+
+        if img_extension == "svg" {
+            img_format = String::from("Svg");
+        } else {
+            img_format = format!(
+                "{:?}",
+                img.format()
+                    .unwrap_or(ImageFormat::from_extension(img_extension).unwrap())
+            );
+        }
 
         ImageInfo {
             path: absolute(img_path).unwrap(),
 
             name: filename,
-            format: format!(
-                "{:?}",
-                img.format().unwrap_or(
-                    ImageFormat::from_extension(img_path.extension().unwrap_or_default()).unwrap()
-                )
-            ),
+            format: img_format,
 
             size: filesize,
             resolution: img.into_dimensions().unwrap_or_default(),
