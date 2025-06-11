@@ -1,6 +1,5 @@
 use egui::{Pos2, Rect, Vec2};
 use image::{ImageFormat, ImageReader};
-use std::ffi::OsStr;
 use std::fmt::Write;
 use std::path::{PathBuf, absolute};
 
