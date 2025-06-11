@@ -84,7 +84,7 @@ pub fn calculate_initial_window_size(img_path: &PathBuf) -> Vec2 {
     let mut img_size: Option<(u32, u32)> = None;
     if let Some(img_extension) = img_path.extension() {
         if img_extension == "svg" {
-            img_size = Some((screen_size_vec.x as u32, screen_size_vec.y as u32));
+            img_size = Some((screen_size_vec.x as u32 / 2, screen_size_vec.y as u32 / 2));
         }
     }
 
