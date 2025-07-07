@@ -1,6 +1,7 @@
 mod config;
 mod misc;
 
+use clipboard_rs::{Clipboard, ClipboardContext};
 use config::AppConfig;
 use egui::{
     Align, CentralPanel, Color32, Context, Frame, Image, Key, Layout, Pos2, Rect, RichText, Sense,
@@ -12,6 +13,7 @@ use misc::{
 };
 use std::path::PathBuf;
 use std::time::Duration;
+#[cfg(target_os = "linux")]
 use wl_clipboard_rs::copy::{
     MimeType as ClipboardMimeType, Options as ClipboardOptions, Source as ClipboardSource,
 };
@@ -164,12 +166,23 @@ impl App {
     }
 
     fn copy_to_clipboard(&mut self) {
-        let opts = ClipboardOptions::new();
-        opts.copy(
-            ClipboardSource::Bytes(self.image_state.uri.as_bytes().into()),
-            ClipboardMimeType::Specific(String::from("text/uri-list")),
-        )
-        .ok();
+        let clipboard_ctx = ClipboardContext::new().unwrap();
+        clipboard_ctx
+            .set_files(vec![self.image_state.uri.clone()])
+            .ok();
+
+        // Clipboard-rs does not support wayland, so I have to use wl-clipboard-rs on linux in addition to it
+        // BTW I don't know how will it work in xorg session =P
+        #[cfg(target_os = "linux")]
+        {
+            let opts = ClipboardOptions::new();
+            opts.copy(
+                ClipboardSource::Bytes(self.image_state.uri.as_bytes().into()),
+                ClipboardMimeType::Specific(String::from("text/uri-list")),
+            )
+            .ok();
+        }
+
         self.notify(String::from("Image was copied to clipboard"));
     }
 
