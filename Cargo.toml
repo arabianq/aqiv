@@ -18,6 +18,7 @@ egui-notify = { version = "0.19.0" }
 image = { version = "0.25.6", features = ["avif", "bmp", "dds", "ff", "gif", "hdr", "ico", "jpeg", "exr", "png", "pnm", "qoi", "tga", "tiff", "webp"] }
 screen_size = { version = "0.1" }
 clap = { version = "4.5.39", features = ["default", "derive"] }
+wl-clipboard-rs = { version = "0.9.2", features = ["native_lib"] }
 
 [profile.release]
 strip = true

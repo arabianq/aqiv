@@ -12,6 +12,9 @@ use misc::{
 };
 use std::path::PathBuf;
 use std::time::Duration;
+use wl_clipboard_rs::copy::{
+    MimeType as ClipboardMimeType, Options as ClipboardOptions, Source as ClipboardSource,
+};
 
 struct ImageState {
     info: ImageInfo,
@@ -160,6 +163,16 @@ impl App {
         self.notify(String::from("Zoom Factor: 1.0"));
     }
 
+    fn copy_to_clipboard(&mut self) {
+        let opts = ClipboardOptions::new();
+        opts.copy(
+            ClipboardSource::Bytes(self.image_state.uri.as_bytes().into()),
+            ClipboardMimeType::Specific(String::from("text/uri-list")),
+        )
+        .ok();
+        self.notify(String::from("Image was copied to clipboard"));
+    }
+
     fn handle_input(&mut self, ui: &mut Ui, ctx: &Context) {
         ctx.input(|i| {
             // Exit on Escape
@@ -200,6 +213,10 @@ impl App {
             // Reset zoom on X
             if i.key_pressed(Key::X) {
                 self.reset_zoom();
+            }
+
+            if i.events.contains(&egui::Event::Copy) {
+                self.copy_to_clipboard();
             }
 
             // Zoom handler
