@@ -29,3 +29,17 @@ lto = true
 codegen-units = 1
 opt-level = "z"
 panic = "abort"
+
+[package.metadata.deb]
+maintainer = "arabian <a.tevg@ya.ru>"
+copyright = "2025, arabian"
+license-file = ["LICENSE"]
+assets = [
+    ["target/release/aqiv", "usr/bin/", "755"],
+]
+depends = "libX11"
+
+[package.metadata.generate-rpm]
+assets = [
+    { source = "target/release/aqiv", dest = "/usr/bin/aqiv", mode = "755" }
+]
