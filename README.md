@@ -17,6 +17,9 @@ A fast, lightweight, and feature-rich image viewer built with Rust and egui.
 - **Customizable**: Clean, dark interface with notification system
 - **Cross-platform**: Works on Windows, macOS, and Linux
 
+## Installation
+You can download pre-build binaries from [releases page](https://github.com/arabianq/aqiv/releases)
+
 ## Installation (using cargo)
 
 ```bash
