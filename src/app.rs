@@ -10,6 +10,7 @@ use egui::{
 use egui_notify::Toasts;
 use misc::{
     ImageInfo, calculate_initial_window_size, calculate_uv_rect, convert_size, get_image_info,
+    pathbuf_as_uri,
 };
 use rfd::FileDialog;
 use std::path::PathBuf;
@@ -81,7 +82,7 @@ impl App {
         let image_state = ImageState {
             info: img_info.clone(),
 
-            uri: format!("file://{}", img_info.path.to_str().unwrap_or_default()),
+            uri: pathbuf_as_uri(&img_info.path),
 
             rotation: 0,
             zoom_factor: 1.0,
@@ -130,10 +131,7 @@ impl App {
             }
 
             self.image_state.info = new_img_info;
-            self.image_state.uri = format!(
-                "file://{}",
-                self.image_state.info.path.to_str().unwrap_or_default()
-            );
+            self.image_state.uri = pathbuf_as_uri(&self.image_state.info.path);
             self.image_state.zoom_factor = 1.0;
             self.image_state.rotation = 0;
             self.image_state.offset = Vec2::ZERO;

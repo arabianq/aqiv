@@ -59,8 +59,9 @@ pub fn get_image_info(img_path: &PathBuf) -> ImageInfo {
         } else {
             img_format = format!(
                 "{:?}",
-                img.format()
-                    .unwrap_or(ImageFormat::from_extension(img_extension).unwrap_or(ImageFormat::Png))
+                img.format().unwrap_or(
+                    ImageFormat::from_extension(img_extension).unwrap_or(ImageFormat::Png)
+                )
             );
         }
 
@@ -163,4 +164,12 @@ pub fn convert_size(size_bytes: f64) -> String {
     write!(&mut buffer, "{:.2} {}", s / 100.0, UNITS[i]).unwrap();
 
     buffer
+}
+
+pub fn pathbuf_as_uri(path_buf: &PathBuf) -> String {
+    let path_str = path_buf
+        .to_str()
+        .unwrap_or_default()
+        .trim_start_matches("/");
+    format!("file:///{}", path_str)
 }
