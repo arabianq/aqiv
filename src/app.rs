@@ -7,6 +7,7 @@ use egui::{
     Align, CentralPanel, Color32, Context, Frame, Image, Key, Layout, Pos2, Rect, RichText, Sense,
     Ui, UiBuilder, Vec2,
 };
+use egui_material_icons::icons;
 use egui_notify::Toasts;
 use misc::{
     ImageInfo, calculate_initial_window_size, calculate_uv_rect, convert_size, get_image_info,
@@ -357,57 +358,89 @@ impl App {
     }
 
     fn render_context_menu(&mut self, ui: &mut Ui) {
-        ui.set_max_width(150.0);
+        ui.set_max_width(160.0);
 
-        if ui.button("Open [O] ").clicked() {
+        let open_button = ui.button(format!("{} {}", icons::ICON_FILE_OPEN, "Open [O] "));
+        if open_button.clicked() {
             ui.close_menu();
             self.open_image();
         }
-        if ui.button("Copy [Ctrl + C]").clicked() {
+
+        let copy_button = ui.button(format!("{} {}", icons::ICON_FILE_COPY, "Copy [Ctrl + C]"));
+        if copy_button.clicked() {
             ui.close_menu();
             self.copy_to_clipboard();
         }
 
         ui.separator();
 
-        if ui
-            .button(match self.app_state.show_info {
-                true => "Hide info [I]",
-                false => "Show info [I]",
-            })
-            .clicked()
-        {
+        let info_button = ui.button(match self.app_state.show_info {
+            true => format!("{} {}", icons::ICON_TAG, "Hide info [I]"),
+            false => format!("{} {}", icons::ICON_TAG, "Show info [I]"),
+        });
+        if info_button.clicked() {
             self.toggle_show_info();
         }
-        if ui
-            .button(match self.app_state.maintain_aspect_ratio {
-                true => "Stretch aspect ratio [D]",
-                false => "Maintain aspect ratio [D]",
-            })
-            .clicked()
-        {
+
+        let aspect_ratio_button = ui.button(match self.app_state.maintain_aspect_ratio {
+            true => format!(
+                "{} {}",
+                icons::ICON_ASPECT_RATIO,
+                "Stretch aspect ratio [D]"
+            ),
+            false => format!(
+                "{} {}",
+                icons::ICON_ASPECT_RATIO,
+                "Maintain aspect ratio [D]"
+            ),
+        });
+        if aspect_ratio_button.clicked() {
             self.toggle_maintain_aspect_ratio();
         }
 
         ui.separator();
 
-        if ui.button("Flip horizontal [H]").clicked() {
+        let flip_h_button = ui.button(format!(
+            "{} {}",
+            icons::ICON_SWAP_HORIZ,
+            "Flip horizontal [H]"
+        ));
+        if flip_h_button.clicked() {
             self.flip_horizontal();
         }
-        if ui.button("Flip vertical [V]").clicked() {
+
+        let flip_v_button = ui.button(format!("{} {}", icons::ICON_SWAP_VERT, "Flip vertical [H]"));
+        if flip_v_button.clicked() {
             self.flip_vertical();
         }
 
         ui.separator();
 
-        if ui.button("Rotate (90 deg) [R]").clicked() {
+        let rotate_90_button = ui.button(format!(
+            "{} {}",
+            icons::ICON_ROTATE_RIGHT,
+            "Rotate (90 deg) [R]"
+        ));
+        if rotate_90_button.clicked() {
             self.rotate_image();
         }
-        if ui.button("Rotate (180 deg)").clicked() {
+
+        let rotate_180_button = ui.button(format!(
+            "{} {}",
+            icons::ICON_ROTATE_RIGHT,
+            "Rotate (180 deg) [R]"
+        ));
+        if rotate_180_button.clicked() {
             self.rotate_image();
             self.rotate_image();
         }
-        if ui.button("Rotate (270 deg)").clicked() {
+
+        let rotate_270_button = ui.button(format!(
+            "{} {}",
+            icons::ICON_ROTATE_RIGHT,
+            "Rotate (270 deg) [R]"
+        ));
+        if rotate_270_button.clicked() {
             self.rotate_image();
             self.rotate_image();
             self.rotate_image();
@@ -415,25 +448,32 @@ impl App {
 
         ui.separator();
 
-        if ui.button("Reset offset [C]").clicked() {
+        let reset_offset_button = ui.button(format!("{} {}", icons::ICON_UNDO, "Reset offset [C]"));
+        if reset_offset_button.clicked() {
             self.reset_offset();
         }
-        if ui.button("Reset zoom [X]").clicked() {
+
+        let reset_zoom_button = ui.button(format!("{} {}", icons::ICON_UNDO, "Reset zoom [C]"));
+        if reset_zoom_button.clicked() {
             self.reset_zoom();
         }
 
         ui.separator();
 
-        if ui.button("Zoom in [W]").clicked() {
+        let zoom_in_button = ui.button(format!("{} {}", icons::ICON_ZOOM_IN, "Zoom in [W]"));
+        if zoom_in_button.clicked() {
             self.image_state.zoom_factor += 0.1 * self.image_state.zoom_factor;
         }
-        if ui.button("Zoom out [S]").clicked() {
+
+        let zoom_in_button = ui.button(format!("{} {}", icons::ICON_ZOOM_OUT, "Zoom out [S]"));
+        if zoom_in_button.clicked() {
             self.image_state.zoom_factor -= 0.1 * self.image_state.zoom_factor;
         }
 
         ui.separator();
 
-        if ui.button("Quit [ESC]").clicked() {
+        let quit_button = ui.button(format!("{} {}", icons::ICON_CLOSE, "Quit [ESC]"));
+        if quit_button.clicked() {
             std::process::exit(0);
         }
     }
@@ -508,6 +548,7 @@ pub fn run(img_path: Option<PathBuf>) -> Result<(), eframe::Error> {
                 options.reduce_texture_memory = true;
             });
 
+            egui_material_icons::initialize(&cc.egui_ctx);
             egui_extras::install_image_loaders(&cc.egui_ctx);
             Ok(Box::new(App::new(cc, img_info)))
         }),
