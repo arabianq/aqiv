@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=AQIV
+Comment=arabian's Quick Image Viewer
+Exec=aqiv %u
+Icon=
+Terminal=false
+Type=Application
+Categories=Graphics

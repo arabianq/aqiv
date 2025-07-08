@@ -24,7 +24,7 @@ rfd = "0.15.3"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 wl-clipboard-rs = { version = "0.9.2", features = ["native_lib"] }
-rfd = {version = "0.15.3", features = ["xdg-portal"]}
+rfd = { version = "0.15.3", features = ["xdg-portal"] }
 
 [profile.release]
 strip = true
@@ -34,11 +34,9 @@ opt-level = "z"
 panic = "abort"
 
 [package.metadata.deb]
-maintainer = "arabian <a.tevg@ya.ru>"
-copyright = "2025, arabian"
-license-file = ["LICENSE"]
 assets = [
     { source = "target/release/aqiv", dest = "usr/bin/", mode = "755" },
+    { source = "aqiv.desktop", dest = "usr/share/applications/aqiv.desktop", mode = "644" },
 ]
 depends = "libX11"
 
