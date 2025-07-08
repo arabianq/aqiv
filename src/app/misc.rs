@@ -13,6 +13,34 @@ pub struct ImageInfo {
     pub resolution: (u32, u32),
 }
 
+impl Default for ImageInfo {
+    fn default() -> Self {
+        ImageInfo {
+            path: PathBuf::new(),
+
+            name: String::new(),
+            format: String::from("Unknown"),
+
+            size: 0,
+            resolution: (0, 0),
+        }
+    }
+}
+
+impl Clone for ImageInfo {
+    fn clone(&self) -> Self {
+        ImageInfo {
+            path: self.path.clone(),
+
+            name: self.name.clone(),
+            format: self.format.clone(),
+
+            size: self.size,
+            resolution: self.resolution,
+        }
+    }
+}
+
 pub fn get_image_info(img_path: &PathBuf) -> ImageInfo {
     let filename = img_path
         .file_name()
@@ -32,7 +60,7 @@ pub fn get_image_info(img_path: &PathBuf) -> ImageInfo {
             img_format = format!(
                 "{:?}",
                 img.format()
-                    .unwrap_or(ImageFormat::from_extension(img_extension).unwrap())
+                    .unwrap_or(ImageFormat::from_extension(img_extension).unwrap_or(ImageFormat::Png))
             );
         }
 

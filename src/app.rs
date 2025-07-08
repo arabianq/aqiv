@@ -11,6 +11,7 @@ use egui_notify::Toasts;
 use misc::{
     ImageInfo, calculate_initial_window_size, calculate_uv_rect, convert_size, get_image_info,
 };
+use rfd::FileDialog;
 use std::path::PathBuf;
 use std::time::Duration;
 #[cfg(target_os = "linux")]
@@ -54,8 +55,15 @@ impl eframe::App for App {
             .show(ctx, |ui| {
                 self.app_state.window_size = ui.available_size();
 
-                self.handle_input(ui, ctx); // Handle all input, including keybindings
-                self.render_img(ui); // Render image
+                self.handle_input(ui, ctx);
+
+                if self.image_state.info.path.exists() {
+                    self.render_img(ui);
+                } else {
+                    if !self.open_image() {
+                        std::process::exit(0);
+                    }
+                }
 
                 if self.app_state.show_info {
                     self.render_info(ui);
@@ -67,13 +75,13 @@ impl eframe::App for App {
 }
 
 impl App {
-    pub fn new(_cc: &eframe::CreationContext<'_>, img_path: PathBuf, img_info: ImageInfo) -> Self {
+    pub fn new(_cc: &eframe::CreationContext<'_>, img_info: ImageInfo) -> Self {
         let cfg = AppConfig::default();
 
         let image_state = ImageState {
-            info: img_info,
+            info: img_info.clone(),
 
-            uri: format!("file://{}", img_path.display()),
+            uri: format!("file://{}", img_info.path.to_str().unwrap_or_default()),
 
             rotation: 0,
             zoom_factor: 1.0,
@@ -100,6 +108,40 @@ impl App {
             app_state,
             image_state,
         }
+    }
+
+    fn open_image(&mut self) -> bool {
+        let file = FileDialog::new()
+            .set_directory(dirs::home_dir().unwrap_or_default())
+            .add_filter(
+                "image",
+                &[
+                    "avif", "bmp", "dds", "ff", "gif", "hdr", "ico", "jpeg", "jpg", "exr", "png",
+                    "pnm", "qoi", "svg", "tga", "tiff", "webp",
+                ],
+            )
+            .pick_file();
+
+        if let Some(file) = file {
+            let new_img_info = get_image_info(&file);
+
+            if new_img_info.resolution == (0, 0) {
+                return true;
+            }
+
+            self.image_state.info = new_img_info;
+            self.image_state.uri = format!(
+                "file://{}",
+                self.image_state.info.path.to_str().unwrap_or_default()
+            );
+            self.image_state.zoom_factor = 1.0;
+            self.image_state.rotation = 0;
+            self.image_state.offset = Vec2::ZERO;
+
+            return true;
+        }
+
+        false
     }
 
     fn notify(&mut self, message: String) {
@@ -193,6 +235,11 @@ impl App {
                 std::process::exit(0);
             }
 
+            // Open Image on O
+            if i.key_pressed(Key::O) {
+                self.open_image();
+            }
+
             // Maintain Aspect Ratio on D
             if i.key_pressed(Key::D) {
                 self.toggle_maintain_aspect_ratio();
@@ -277,6 +324,7 @@ impl App {
         }
 
         let img = Image::new(&self.image_state.uri)
+            .show_loading_spinner(false)
             .maintain_aspect_ratio(self.app_state.maintain_aspect_ratio)
             .fit_to_exact_size(img_size)
             .uv(self.image_state.uv_rect)
@@ -343,9 +391,17 @@ impl App {
     }
 }
 
-pub fn run(img_path: PathBuf) -> Result<(), eframe::Error> {
-    let initial_window_size = calculate_initial_window_size(&img_path);
-    let img_info = get_image_info(&img_path);
+pub fn run(img_path: Option<PathBuf>) -> Result<(), eframe::Error> {
+    let initial_window_size: Vec2;
+    let img_info: ImageInfo;
+
+    if let Some(img_path) = img_path {
+        initial_window_size = calculate_initial_window_size(&img_path);
+        img_info = get_image_info(&img_path);
+    } else {
+        initial_window_size = Vec2::new(600.0, 600.0);
+        img_info = ImageInfo::default();
+    }
 
     let options = eframe::NativeOptions {
         vsync: true,
@@ -361,11 +417,7 @@ pub fn run(img_path: PathBuf) -> Result<(), eframe::Error> {
     };
 
     eframe::run_native(
-        format!(
-            "Quick Image Viewer - {}",
-            img_path.file_name().unwrap().display()
-        )
-        .as_str(),
+        format!("Quick Image Viewer - {}", img_info.name).as_str(),
         options,
         Box::new(|cc| {
             cc.egui_ctx.options_mut(|options| {
@@ -374,7 +426,7 @@ pub fn run(img_path: PathBuf) -> Result<(), eframe::Error> {
             });
 
             egui_extras::install_image_loaders(&cc.egui_ctx);
-            Ok(Box::new(App::new(cc, img_path, img_info)))
+            Ok(Box::new(App::new(cc, img_info)))
         }),
     )
 }
