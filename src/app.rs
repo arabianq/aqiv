@@ -309,6 +309,16 @@ impl App {
     }
 
     fn render_img(&mut self, ui: &mut Ui) {
+        // Creating full screen area to handle dragging
+        let full_area_rect = Rect::from_min_size(
+            Pos2::ZERO,
+            Vec2::new(self.app_state.window_size.x, self.app_state.window_size.y),
+        );
+        let full_area_response = ui.allocate_rect(full_area_rect, Sense::click_and_drag());
+
+        // Render Context Menu (only visible after right click)
+        full_area_response.context_menu(|ui| self.render_context_menu(ui));
+
         let mut img_rect = calculate_uv_rect(
             self.app_state.window_size.to_pos2(),
             self.image_state.zoom_factor,
@@ -331,13 +341,6 @@ impl App {
                 Vec2::splat(0.5),
             );
 
-        // Creating full screen area to handle dragging
-        let full_area_rect = Rect::from_min_size(
-            Pos2::ZERO,
-            Vec2::new(self.app_state.window_size.x, self.app_state.window_size.y),
-        );
-        let full_area_response = ui.allocate_rect(full_area_rect, Sense::drag());
-
         // Handle dragging
         if full_area_response.dragged() && self.app_state.dragging {
             ui.ctx().set_cursor_icon(egui::CursorIcon::Grabbing);
@@ -351,6 +354,88 @@ impl App {
 
         // Show image
         ui.put(img_rect, img);
+    }
+
+    fn render_context_menu(&mut self, ui: &mut Ui) {
+        ui.set_max_width(150.0);
+
+        if ui.button("Open [O] ").clicked() {
+            ui.close_menu();
+            self.open_image();
+        }
+        if ui.button("Copy [Ctrl + C]").clicked() {
+            ui.close_menu();
+            self.copy_to_clipboard();
+        }
+
+        ui.separator();
+
+        if ui
+            .button(match self.app_state.show_info {
+                true => "Hide info [I]",
+                false => "Show info [I]",
+            })
+            .clicked()
+        {
+            self.toggle_show_info();
+        }
+        if ui
+            .button(match self.app_state.maintain_aspect_ratio {
+                true => "Stretch aspect ratio [D]",
+                false => "Maintain aspect ratio [D]",
+            })
+            .clicked()
+        {
+            self.toggle_maintain_aspect_ratio();
+        }
+
+        ui.separator();
+
+        if ui.button("Flip horizontal [H]").clicked() {
+            self.flip_horizontal();
+        }
+        if ui.button("Flip vertical [V]").clicked() {
+            self.flip_vertical();
+        }
+
+        ui.separator();
+
+        if ui.button("Rotate (90 deg) [R]").clicked() {
+            self.rotate_image();
+        }
+        if ui.button("Rotate (180 deg)").clicked() {
+            self.rotate_image();
+            self.rotate_image();
+        }
+        if ui.button("Rotate (270 deg)").clicked() {
+            self.rotate_image();
+            self.rotate_image();
+            self.rotate_image();
+        }
+
+        ui.separator();
+
+        if ui.button("Reset offset [C]").clicked() {
+            self.reset_offset();
+        }
+        if ui.button("Reset zoom [X]").clicked() {
+            self.reset_zoom();
+        }
+
+        ui.separator();
+
+        if ui.button("Zoom in [W]").clicked() {
+            self.image_state.zoom_factor += 0.1 * self.image_state.zoom_factor;
+        }
+        if ui.button("Zoom out [S]").clicked() {
+            self.image_state.zoom_factor -= 0.1 * self.image_state.zoom_factor;
+        }
+
+        ui.separator();
+
+        if ui.button("Quit [ESC]").clicked() {
+            std::process::exit(0);
+        }
     }
 
     fn render_info(&mut self, ui: &mut Ui) {
