@@ -409,7 +409,7 @@ pub fn run(img_path: Option<PathBuf>) -> Result<(), eframe::Error> {
         hardware_acceleration: eframe::HardwareAcceleration::Preferred,
 
         viewport: egui::ViewportBuilder::default()
-            .with_app_id("aqiv")
+            .with_app_id("ru.arabianq.aqiv")
             .with_inner_size(initial_window_size)
             .with_min_inner_size(Vec2::new(200.0, 200.0)),
 
