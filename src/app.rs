@@ -40,6 +40,8 @@ struct AppState {
     maintain_aspect_ratio: bool,
     show_info: bool,
     dragging: bool,
+    #[cfg(target_os = "macos")]
+    first_frame_passed: bool,
 
     toasts: Toasts,
     notification_duration: Option<Duration>,
@@ -72,6 +74,11 @@ impl eframe::App for App {
                 }
 
                 self.app_state.toasts.show(ctx); // Show all notifications
+
+                #[cfg(target_os = "macos")]
+                {
+                    self.app_state.first_frame_passed = true;
+                }
             });
     }
 }
@@ -99,6 +106,8 @@ impl App {
             maintain_aspect_ratio: cfg.maintain_aspect_ratio,
             show_info: cfg.show_info,
             dragging: false,
+            #[cfg(target_os = "macos")]
+            first_frame_passed: false,
 
             toasts: Toasts::default(),
             notification_duration: Option::from(Duration::from_millis(
@@ -113,6 +122,11 @@ impl App {
     }
 
     fn open_image(&mut self) -> bool {
+        #[cfg(target_os = "macos")]
+        if !self.app_state.first_frame_passed {
+            return true;
+        }
+
         let file = FileDialog::new()
             .set_directory(dirs::home_dir().unwrap_or_default())
             .add_filter(
