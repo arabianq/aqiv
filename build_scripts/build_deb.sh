@@ -1,7 +1,10 @@
 #!/usr/bin/bash
 
+# Change dir to the cargo project
 cd "$(dirname "$(realpath "$0")")/.." || exit
 
-bash ./build_scripts/build_linux.sh
+RUST_TARGET=${1:-"x86_64-unknown-linux-gnu"}
+
+bash ./build_scripts/build_linux.sh "$RUST_TARGET"
 cargo install cargo-deb
-cargo deb --target x86_64-unknown-linux-gnu
+cargo deb --target "$RUST_TARGET"
