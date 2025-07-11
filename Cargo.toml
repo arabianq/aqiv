@@ -53,3 +53,7 @@ libgcc = "*"
 glibc = "*"
 libxcb = "*"
 libXau = "*"
+
+[package.metadata.bundle]
+name = "AQIV"
+identifier = "ru.arabianq.aqiv"

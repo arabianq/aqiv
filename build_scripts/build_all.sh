@@ -22,7 +22,7 @@ if command -v upx >/dev/null 2>&1; then
   upx -t ./target/$RUST_TARGET_LINUX/release/aqiv
 
   upx --best ./target/$RUST_TARGET_WINDOWS/release/aqiv.exe
-    upx -t ./target/$RUST_TARGET_WINDOWS/release/aqiv.exe
+  upx -t ./target/$RUST_TARGET_WINDOWS/release/aqiv.exe
 fi
 
 # Move Linux and Windows binaries to for_github_release directory
