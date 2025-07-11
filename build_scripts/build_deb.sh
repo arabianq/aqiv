@@ -1,5 +1,7 @@
 #!/usr/bin/bash
 
-bash ./build_linux.sh
+cd "$(dirname "$(realpath "$0")")/.." || exit
+
+bash ./build_scripts/build_linux.sh
 cargo install cargo-deb
 cargo deb
