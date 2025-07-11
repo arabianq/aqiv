@@ -43,7 +43,7 @@ depends = ["libx11-6", "libgcc-s1", "libc6", "libxcb1", "libxau6"]
 
 [package.metadata.generate-rpm]
 assets = [
-    { source = "target/release/aqiv", dest = "/usr/bin/aqiv", mode = "755" },
+    { source = "target/x86_64-unknown-linux-gnu/release/aqiv", dest = "/usr/bin/aqiv", mode = "755" },
     { source = "aqiv.desktop", dest = "/usr/share/applications/aqiv.desktop", mode = "644" }
 ]
 
