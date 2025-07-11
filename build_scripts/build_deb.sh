@@ -1,5 +1,5 @@
-#!/usr/bin/sh
+#!/usr/bin/bash
 
-sh ./build_linux.sh
+bash ./build_linux.sh
 cargo install cargo-deb
 cargo deb

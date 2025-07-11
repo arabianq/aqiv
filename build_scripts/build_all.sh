@@ -1,5 +1,5 @@
-#!/usr/bin/sh
+#!/usr/bin/bash
 
-sh ./build_deb.sh
-sh ./build_rpm.sh
-sh ./build_windows.sh
+bash ./build_deb.sh
+bash ./build_rpm.sh
+bash ./build_windows.sh
