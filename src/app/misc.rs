@@ -167,9 +167,6 @@ pub fn convert_size(size_bytes: f64) -> String {
 }
 
 pub fn pathbuf_as_uri(path_buf: &PathBuf) -> String {
-    let path_str = path_buf
-        .to_str()
-        .unwrap_or_default()
-        .trim_start_matches("/");
-    format!("file:///{}", path_str)
+    let path_str = path_buf.to_str().unwrap_or_default();
+    format!("file://{}", path_str)
 }

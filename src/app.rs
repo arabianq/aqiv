@@ -222,8 +222,17 @@ impl App {
 
     fn copy_to_clipboard(&mut self) {
         let clipboard_ctx = ClipboardContext::new().unwrap();
+
+        // Idk why windows does not handle uri in clipboard correctly, but it does handle path =\
+        #[cfg(target_os = "windows")]
         clipboard_ctx
-            .set_files(vec![self.image_state.uri.clone()])
+            .set_files(vec![
+                self.image_state.info.path.to_string_lossy().to_string(),
+            ])
+            .ok();
+        #[cfg(not(target_os = "windows"))]
+        clipboard_ctx
+            .set_files(vec![self.image_state.uri.to_string()])
             .ok();
 
         // Clipboard-rs does not support wayland, so I have to use wl-clipboard-rs on linux in addition to it
