@@ -21,6 +21,11 @@ use wl_clipboard_rs::copy::{
     MimeType as ClipboardMimeType, Options as ClipboardOptions, Source as ClipboardSource,
 };
 
+const SUPPORTED_EXTENSIONS: [&str; 17] = [
+    "avif", "bmp", "dds", "ff", "gif", "hdr", "ico", "jpeg", "jpg", "exr", "png", "pnm", "qoi",
+    "svg", "tga", "tiff", "webp",
+];
+
 struct ImageState {
     info: ImageInfo,
 
@@ -121,11 +126,11 @@ impl App {
         }
     }
 
-    fn load_new_image(&mut self, path: &PathBuf) {
+    fn load_new_image(&mut self, path: &PathBuf) -> bool {
         let new_img_info = get_image_info(&path);
 
         if new_img_info.resolution == (0, 0) {
-            return;
+            return false;
         }
 
         self.image_state.info = new_img_info;
@@ -133,6 +138,8 @@ impl App {
         self.image_state.zoom_factor = 1.0;
         self.image_state.rotation = 0;
         self.image_state.offset = Vec2::ZERO;
+
+        true
     }
 
     fn open_image(&mut self) -> bool {
@@ -143,13 +150,7 @@ impl App {
 
         let file = FileDialog::new()
             .set_directory(dirs::home_dir().unwrap_or_default())
-            .add_filter(
-                "image",
-                &[
-                    "avif", "bmp", "dds", "ff", "gif", "hdr", "ico", "jpeg", "jpg", "exr", "png",
-                    "pnm", "qoi", "svg", "tga", "tiff", "webp",
-                ],
-            )
+            .add_filter("image", &SUPPORTED_EXTENSIONS)
             .pick_file();
 
         if let Some(file) = file {
@@ -221,6 +222,70 @@ impl App {
     fn reset_zoom(&mut self) {
         self.image_state.zoom_factor = 1.0;
         self.notify(String::from("Zoom Factor: 1.0"));
+    }
+
+    fn next_image(&mut self, step: i128) {
+        let current_dir = self.image_state.info.path.parent().unwrap();
+        let all_files = std::fs::read_dir(current_dir).unwrap();
+        let mut img_files: Vec<PathBuf> = Vec::new();
+        for file in all_files {
+            let file = file.unwrap();
+            let file_path = file.path();
+            let extension = file_path.extension().unwrap_or_default();
+
+            if !SUPPORTED_EXTENSIONS.contains(&extension.to_str().unwrap()) {
+                continue;
+            }
+
+            img_files.push(file_path);
+        }
+
+        img_files.sort_by(|a, b| {
+            let a_name = a.file_name().unwrap_or_default();
+            let b_name = b.file_name().unwrap_or_default();
+
+            match (a_name.to_str(), b_name.to_str()) {
+                (Some(a_str), Some(b_str)) => a_str.cmp(b_str),
+                _ => a_name.cmp(b_name), // Compare as OsStr, may cause some issues =P
+            }
+        });
+
+        let current_file_index = img_files
+            .iter()
+            .position(|f| f == &self.image_state.info.path)
+            .unwrap() as i128;
+        let max_index = img_files.len() as i128 - 1;
+
+        let mut new_file_index = current_file_index + step;
+        let mut broken_indexes: Vec<i128> = Vec::new();
+        loop {
+            if broken_indexes.contains(&new_file_index) {
+                self.notify(String::from("Couldn't open any image in this directory"))
+            }
+
+            new_file_index = {
+                if new_file_index == -1 {
+                    max_index
+                } else if new_file_index > max_index {
+                    0
+                } else {
+                    new_file_index
+                }
+            };
+
+            let new_file_pathbuf = img_files.get(new_file_index as usize).unwrap();
+            if self.load_new_image(new_file_pathbuf) {
+                break;
+            }
+
+            self.notify(String::from(format!(
+                "Couldn't open {}",
+                new_file_pathbuf.to_str().unwrap()
+            )));
+
+            broken_indexes.push(new_file_index);
+            new_file_index += step;
+        }
     }
 
     fn copy_path_to_clipboard(&mut self) {
@@ -325,6 +390,12 @@ impl App {
             // Reset zoom on X
             if i.key_pressed(Key::X) {
                 self.reset_zoom();
+            }
+
+            if i.key_pressed(Key::ArrowRight) {
+                self.next_image(1);
+            } else if i.key_pressed(Key::ArrowLeft) {
+                self.next_image(-1);
             }
 
             if i.events.contains(&egui::Event::Copy) {
