@@ -121,6 +121,20 @@ impl App {
         }
     }
 
+    fn load_new_image(&mut self, path: &PathBuf) {
+        let new_img_info = get_image_info(&path);
+
+        if new_img_info.resolution == (0, 0) {
+            return;
+        }
+
+        self.image_state.info = new_img_info;
+        self.image_state.uri = pathbuf_as_uri(&self.image_state.info.path);
+        self.image_state.zoom_factor = 1.0;
+        self.image_state.rotation = 0;
+        self.image_state.offset = Vec2::ZERO;
+    }
+
     fn open_image(&mut self) -> bool {
         #[cfg(target_os = "macos")]
         if !self.app_state.first_frame_passed {
@@ -139,18 +153,7 @@ impl App {
             .pick_file();
 
         if let Some(file) = file {
-            let new_img_info = get_image_info(&file);
-
-            if new_img_info.resolution == (0, 0) {
-                return true;
-            }
-
-            self.image_state.info = new_img_info;
-            self.image_state.uri = pathbuf_as_uri(&self.image_state.info.path);
-            self.image_state.zoom_factor = 1.0;
-            self.image_state.rotation = 0;
-            self.image_state.offset = Vec2::ZERO;
-
+            self.load_new_image(&file);
             return true;
         }
 
@@ -220,7 +223,35 @@ impl App {
         self.notify(String::from("Zoom Factor: 1.0"));
     }
 
-    fn copy_to_clipboard(&mut self) {
+    fn copy_path_to_clipboard(&mut self) {
+        let clipboard_ctx = ClipboardContext::new().unwrap();
+        clipboard_ctx
+            .set_text(self.image_state.info.path.to_string_lossy().to_string())
+            .unwrap();
+
+        // Clipboard-rs does not support wayland, so I have to use wl-clipboard-rs on linux in addition to it
+        // BTW I don't know how will it work in xorg session =P
+        #[cfg(target_os = "linux")]
+        {
+            let opts = ClipboardOptions::new();
+            opts.copy(
+                ClipboardSource::Bytes(
+                    self.image_state
+                        .info
+                        .path
+                        .to_string_lossy()
+                        .as_bytes()
+                        .into(),
+                ),
+                ClipboardMimeType::Specific(String::from("text/plain;charset=utf-8")),
+            )
+            .ok();
+        }
+
+        self.notify(String::from("Path was copied to clipboard"));
+    }
+
+    fn copy_uri_to_clipboard(&mut self) {
         let clipboard_ctx = ClipboardContext::new().unwrap();
 
         // Idk why windows does not handle uri in clipboard correctly, but it does handle path =\
@@ -235,8 +266,7 @@ impl App {
             .set_files(vec![self.image_state.uri.to_string()])
             .ok();
 
-        // Clipboard-rs does not support wayland, so I have to use wl-clipboard-rs on linux in addition to it
-        // BTW I don't know how will it work in xorg session =P
+        // For wayland
         #[cfg(target_os = "linux")]
         {
             let opts = ClipboardOptions::new();
@@ -298,7 +328,10 @@ impl App {
             }
 
             if i.events.contains(&egui::Event::Copy) {
-                self.copy_to_clipboard();
+                match i.modifiers.shift {
+                    true => self.copy_path_to_clipboard(),
+                    false => self.copy_uri_to_clipboard(),
+                }
             }
 
             // Zoom handler
@@ -381,18 +414,32 @@ impl App {
     }
 
     fn render_context_menu(&mut self, ui: &mut Ui) {
-        ui.set_max_width(160.0);
+        ui.set_max_width(170.0);
 
-        let open_button = ui.button(format!("{} {}", icons::ICON_FILE_OPEN, "Open [O] "));
+        let open_button = ui.button(format!("{} {}", icons::ICON_FILE_OPEN, "Open image [O] "));
         if open_button.clicked() {
             ui.close_menu();
             self.open_image();
         }
 
-        let copy_button = ui.button(format!("{} {}", icons::ICON_FILE_COPY, "Copy [Ctrl + C]"));
-        if copy_button.clicked() {
+        let copy_uri_button = ui.button(format!(
+            "{} {}",
+            icons::ICON_FILE_COPY,
+            "Copy image [Ctrl + C]"
+        ));
+        if copy_uri_button.clicked() {
             ui.close_menu();
-            self.copy_to_clipboard();
+            self.copy_uri_to_clipboard();
+        }
+
+        let copy_path_button = ui.button(format!(
+            "{} {}",
+            icons::ICON_FILE_COPY,
+            "Copy path [Ctrl + Shift + C]"
+        ));
+        if copy_path_button.clicked() {
+            ui.close_menu();
+            self.copy_path_to_clipboard();
         }
 
         ui.separator();
