@@ -390,6 +390,7 @@ impl App {
 
         let img = Image::new(&self.image_state.uri)
             .show_loading_spinner(false)
+            .alt_text("Failed to load image =(")
             .maintain_aspect_ratio(self.app_state.maintain_aspect_ratio)
             .fit_to_exact_size(img_size)
             .uv(self.image_state.uv_rect)
