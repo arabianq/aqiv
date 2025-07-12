@@ -66,20 +66,24 @@ aqiv "C:\Users\Name\Desktop\image with spaces.gif"
 
 ### Keyboard Controls
 
-| Key           | Action                                 |
-|---------------|----------------------------------------|
-| `Escape`      | Exit the application                   |
-| `Mouse Wheel` | Zoom in/out (centered on mouse cursor) |
-| `W`           | Zoom in                                |
-| `S`           | Zoom out                               |
-| `Mouse Drag`  | Pan/move the image                     |
-| `R`           | Rotate image 90° clockwise             |
-| `H`           | Flip image horizontally                |
-| `V`           | Flip image vertically                  |
-| `C`           | Reset image position to center         |
-| `X`           | Reset zoom to 100%                     |
-| `D`           | Toggle maintain aspect ratio           |
-| `I`           | Toggle image information display       |
+| Key                 | Action                                 |
+|---------------------|----------------------------------------|
+| `Right Mouse Click` | Show context menu                      |
+| `Escape`            | Exit the application                   |
+| `O`                 | Open another file                      |
+| `D`                 | Toggle maintain aspect ratio           |
+| `I`                 | Toggle image information display       |
+| `H`                 | Flip image horizontally                |
+| `V`                 | Flip image vertically                  |
+| `R`                 | Rotate image 90° clockwise             |
+| `C`                 | Reset image position to center         |
+| `X`                 | Reset zoom to 100%                     |
+| `Ctrl + C`          | Copy image to clipboard                |
+| `Mouse Wheel`       | Zoom in/out (centered on mouse cursor) |
+| `W`                 | Zoom in                                |
+| `S`                 | Zoom out                               |
+| `Mouse Drag`        | Pan/move the image                     |
+
 
 ## Configuration
 
