@@ -30,6 +30,7 @@ struct ImageState {
     info: ImageInfo,
 
     uri: String,
+    uri_to_forget: Option<String>,
 
     rotation: u8,
     zoom_factor: f32,
@@ -64,6 +65,10 @@ impl eframe::App for App {
             .show(ctx, |ui| {
                 self.app_state.window_size = ui.available_size();
 
+                if let Some(uri) = &self.image_state.uri_to_forget {
+                    ctx.forget_image(uri);
+                }
+
                 self.handle_input(ui, ctx);
 
                 if self.image_state.info.path.exists() {
@@ -96,6 +101,7 @@ impl App {
             info: img_info.clone(),
 
             uri: pathbuf_as_uri(&img_info.path),
+            uri_to_forget: None,
 
             rotation: 0,
             zoom_factor: 1.0,
@@ -132,6 +138,8 @@ impl App {
         if new_img_info.resolution == (0, 0) {
             return false;
         }
+
+        self.image_state.uri_to_forget = Some(self.image_state.uri.clone());
 
         self.image_state.info = new_img_info;
         self.image_state.uri = pathbuf_as_uri(&self.image_state.info.path);
