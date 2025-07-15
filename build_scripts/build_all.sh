@@ -1,5 +1,8 @@
 #!/usr/bin/bash
 
+# Clean all cargo files
+cargo clean
+
 # Change dir to the cargo project
 cd "$(dirname "$(realpath "$0")")/.." || exit
 
