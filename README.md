@@ -18,9 +18,25 @@ A fast, lightweight, and feature-rich image viewer built with Rust and egui.
 - **Cross-platform**: Works on Windows, macOS, and Linux
 
 ## Installation
+
+### Fedora Linux
+
+```bash
+# Add my repository using DNF
+sudo dnf install https://files.arabianq.ru/repo/fedora/$(rpm -E %fedora)/noarch/arabianq-release.noarch.rpm
+
+# Update repo's cache
+sudo dnf makecache
+
+# Install AQIV
+sudo dnf install aqiv
+```
+
+### Other systems
+
 You can download pre-build binaries from [releases page](https://github.com/arabianq/aqiv/releases)
 
-## Installation (using cargo)
+## Installation using cargo
 
 ```bash
 # Install globally
@@ -84,7 +100,6 @@ aqiv "C:\Users\Name\Desktop\image with spaces.gif"
 | `W`                 | Zoom in                                   |
 | `S`                 | Zoom out                                  |
 | `Mouse Drag`        | Pan/move the image                        |
-
 
 ## Configuration
 
