@@ -8,3 +8,5 @@ RUST_TARGET=${1:-"x86_64-unknown-linux-gnu"}
 bash ./build_scripts/build_linux.sh "$RUST_TARGET"
 cargo install cargo-generate-rpm
 cargo generate-rpm
+
+rpm --addsign ./target/generate-rpm/*.rpm
