@@ -3,12 +3,14 @@ mod misc;
 
 use clipboard_rs::{Clipboard, ClipboardContext};
 use config::AppConfig;
+use egui::load::SizedTexture;
 use egui::{
-    Align, CentralPanel, Color32, Context, Frame, Image, Key, Layout, Pos2, Rect, RichText, Sense,
-    Ui, UiBuilder, Vec2,
+    Align, CentralPanel, Color32, ColorImage, Context, Frame, Image, Key, Layout, Pos2, Rect,
+    RichText, Sense, TextureHandle, Ui, UiBuilder, Vec2,
 };
 use egui_material_icons::icons;
 use egui_notify::Toasts;
+use image::{EncodableLayout, GenericImageView};
 use misc::{
     ImageInfo, calculate_initial_window_size, calculate_uv_rect, convert_size, get_image_info,
     pathbuf_as_uri,
@@ -37,6 +39,9 @@ struct ImageState {
 
     uv_rect: Rect,
     offset: Vec2,
+
+    texture_handle: Option<TextureHandle>,
+    sized_texture: Option<SizedTexture>,
 }
 
 struct AppState {
@@ -63,6 +68,12 @@ impl eframe::App for App {
         CentralPanel::default()
             .frame(Frame::new().fill(self.app_state.background_color))
             .show(ctx, |ui| {
+                if self.image_state.texture_handle.is_none()
+                    || self.image_state.sized_texture.is_none()
+                {
+                    self.load_texture(ui);
+                }
+
                 self.app_state.window_size = ui.available_size();
 
                 if let Some(uri) = &self.image_state.uri_to_forget {
@@ -108,6 +119,9 @@ impl App {
 
             uv_rect: Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)),
             offset: Vec2::ZERO,
+
+            texture_handle: None,
+            sized_texture: None,
         };
 
         let app_state = AppState {
@@ -130,6 +144,44 @@ impl App {
             app_state,
             image_state,
         }
+    }
+
+    fn load_texture(&mut self, ui: &mut Ui) {
+        let color_image: ColorImage;
+        let width: u32;
+        let height: u32;
+
+        if self.image_state.info.format == "Svg" {
+            let svg = nsvg::parse_file(
+                self.image_state.info.path.as_path(),
+                nsvg::Units::Pixel,
+                96.0,
+            )
+            .unwrap();
+
+            let image = svg.rasterize(4.0).unwrap();
+            (width, height) = image.dimensions();
+            let bytes = image.as_bytes();
+
+            color_image =
+                ColorImage::from_rgba_unmultiplied([width as usize, height as usize], bytes);
+        } else {
+            let image = image::open(&self.image_state.info.path).unwrap();
+            (width, height) = image.dimensions();
+            let bytes = image.as_bytes();
+
+            color_image = ColorImage::from_rgb([width as usize, height as usize], bytes);
+        }
+
+        self.image_state.texture_handle = Some(ui.ctx().load_texture(
+            "texture",
+            color_image,
+            Default::default(),
+        ));
+        self.image_state.sized_texture = Some(SizedTexture::new(
+            self.image_state.texture_handle.as_mut().unwrap().id(),
+            Vec2::new(width as f32, height as f32),
+        ));
     }
 
     fn load_new_image(&mut self, path: &PathBuf) -> bool {
@@ -467,7 +519,7 @@ impl App {
             img_rect = Rect::from_center_size(img_rect.center(), img_size);
         }
 
-        let img = Image::new(&self.image_state.uri)
+        let img = Image::from_texture(self.image_state.sized_texture.unwrap())
             .show_loading_spinner(false)
             .alt_text("Failed to load image =(")
             .maintain_aspect_ratio(self.app_state.maintain_aspect_ratio)
