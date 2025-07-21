@@ -198,6 +198,8 @@ impl App {
         self.image_state.zoom_factor = 1.0;
         self.image_state.rotation = 0;
         self.image_state.offset = Vec2::ZERO;
+        self.image_state.texture_handle = None;
+        self.image_state.sized_texture = None;
 
         true
     }
