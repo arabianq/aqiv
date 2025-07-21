@@ -11,22 +11,23 @@ repository = "https://github.com/arabianq/aqiv"
 homepage = "https://aqiv.arabianq.ru"
 
 [dependencies]
-egui = { version = "0.32.0", features = ["default"] }
-eframe = { version = "0.32.0", features = ["default"] }
-egui_extras = { version = "0.32.0", features = ["image", "file", "svg", "gif"] }
-egui-notify = { version = "0.20.0" }
+egui = { version = "0.32.0", default-features = false }
+eframe = { version = "0.32.0", default-features = false, features = ["glow", "wayland", "x11", "default_fonts"] }
+egui_extras = { version = "0.32.0", default-features = false, features = ["image", "file", "svg", "gif"] }
+egui-notify = "0.20.0"
 egui_material_icons = "0.4.0"
-image = { version = "0.25.6", features = ["avif", "bmp", "dds", "ff", "gif", "hdr", "ico", "jpeg", "exr", "png", "pnm", "qoi", "tga", "tiff", "webp"] }
-nsvg = "0.5.1"
+image = { version = "0.25.6", default-features = false, features = ["avif", "bmp", "dds", "ff", "gif", "hdr", "ico", "jpeg", "exr", "png", "pnm", "qoi", "tga", "tiff", "webp"] }
+resvg = { version = "0.45.1", default-features = false, features = ["raster-images"] }
+usvg = { version = "0.45.1", default-features = false }
 screen_size = { version = "0.1" }
-clap = { version = "4.5.39", features = ["default", "derive"] }
+clap = { version = "4.5.39", default-features = false, features = ["derive", "std"] }
 clipboard-rs = "0.3.0"
 dirs = "6.0.0"
-rfd = "0.15.3"
+rfd = { version = "0.15.4", default-features = false, features = ["xdg-portal", "async-std"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
-wl-clipboard-rs = { version = "0.9.2", features = ["native_lib"] }
-rfd = { version = "0.15.3", features = ["xdg-portal"] }
+wl-clipboard-rs = { version = "0.9.2", default-features = false, features = ["native_lib"] }
+
 
 [profile.release]
 strip = true

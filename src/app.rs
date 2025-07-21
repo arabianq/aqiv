@@ -10,7 +10,6 @@ use egui::{
 };
 use egui_material_icons::icons;
 use egui_notify::Toasts;
-use image::{EncodableLayout, GenericImageView};
 use misc::{
     ImageInfo, calculate_initial_window_size, calculate_uv_rect, convert_size, get_image_info,
     pathbuf_as_uri,
@@ -68,26 +67,26 @@ impl eframe::App for App {
         CentralPanel::default()
             .frame(Frame::new().fill(self.app_state.background_color))
             .show(ctx, |ui| {
+                self.app_state.window_size = ui.available_size();
+
+                self.handle_input(ui, ctx);
+
+                if !self.image_state.info.path.exists() {
+                    if !self.open_image() {
+                        std::process::exit(0);
+                    }
+                }
+
                 if self.image_state.texture_handle.is_none()
                     || self.image_state.sized_texture.is_none()
                 {
                     self.load_texture(ui);
+                } else {
+                    self.render_img(ui);
                 }
-
-                self.app_state.window_size = ui.available_size();
 
                 if let Some(uri) = &self.image_state.uri_to_forget {
                     ctx.forget_image(uri);
-                }
-
-                self.handle_input(ui, ctx);
-
-                if self.image_state.info.path.exists() {
-                    self.render_img(ui);
-                } else {
-                    if !self.open_image() {
-                        std::process::exit(0);
-                    }
                 }
 
                 if self.app_state.show_info {
@@ -152,22 +151,28 @@ impl App {
         let height: u32;
 
         if self.image_state.info.format == "Svg" {
-            let svg = nsvg::parse_file(
-                self.image_state.info.path.as_path(),
-                nsvg::Units::Pixel,
-                96.0,
-            )
-            .unwrap();
+            let svg_data = std::fs::read_to_string(&self.image_state.info.path).unwrap();
+            let usvg_tree = usvg::Tree::from_str(&svg_data, &usvg::Options::default()).unwrap();
 
-            let image = svg.rasterize(4.0).unwrap();
-            (width, height) = image.dimensions();
-            let bytes = image.as_bytes();
+            let og_size = usvg_tree.size().to_int_size();
+            let og_width = og_size.width();
+            let og_height = og_size.height();
+
+            width = og_width * 4;
+            height = og_height * 4;
+
+            let mut pixmap = resvg::tiny_skia::Pixmap::new(width, height).unwrap();
+            let transform = resvg::tiny_skia::Transform::from_scale(4.0, 4.0);
+            resvg::render(&usvg_tree, transform, &mut pixmap.as_mut());
+
+            let bytes = pixmap.data().iter().as_slice();
 
             color_image =
                 ColorImage::from_rgba_unmultiplied([width as usize, height as usize], bytes);
         } else {
             let image = image::open(&self.image_state.info.path).unwrap();
-            (width, height) = image.dimensions();
+            width = image.width();
+            height = image.height();
             let bytes = image.as_bytes();
 
             color_image = ColorImage::from_rgb([width as usize, height as usize], bytes);
