@@ -11,11 +11,11 @@ repository = "https://github.com/arabianq/aqiv"
 homepage = "https://aqiv.arabianq.ru"
 
 [dependencies]
-egui = { version = "0.31.1", features = ["default"] }
-eframe = { version = "0.31.1", features = ["default"] }
-egui_extras = { version = "0.31.1", features = ["image", "file", "svg", "gif"] }
-egui-notify = { version = "0.19.0" }
-egui_material_icons = "0.3.0"
+egui = { version = "0.32.0", features = ["default"] }
+eframe = { version = "0.32.0", features = ["default"] }
+egui_extras = { version = "0.32.0", features = ["image", "file", "svg", "gif"] }
+egui-notify = { version = "0.20.0" }
+egui_material_icons = "0.4.0"
 image = { version = "0.25.6", features = ["avif", "bmp", "dds", "ff", "gif", "hdr", "ico", "jpeg", "exr", "png", "pnm", "qoi", "tga", "tiff", "webp"] }
 screen_size = { version = "0.1" }
 clap = { version = "4.5.39", features = ["default", "derive"] }
