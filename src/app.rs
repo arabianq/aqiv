@@ -187,7 +187,7 @@ impl App {
     fn load_new_image(&mut self, path: &PathBuf) -> bool {
         let new_img_info = get_image_info(&path);
 
-        if new_img_info.resolution == (0, 0) {
+        if new_img_info.resolution.is_none() {
             return false;
         }
 
@@ -695,7 +695,8 @@ impl App {
             convert_size(self.image_state.info.size as f64),
             format!(
                 "{}x{}",
-                self.image_state.info.resolution.0, self.image_state.info.resolution.1
+                self.image_state.info.resolution.unwrap().0,
+                self.image_state.info.resolution.unwrap().1
             ),
             self.image_state.info.path.display()
         ))

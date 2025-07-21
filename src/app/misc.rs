@@ -10,7 +10,7 @@ pub struct ImageInfo {
     pub format: String,
 
     pub size: u64,
-    pub resolution: (u32, u32),
+    pub resolution: Option<(u32, u32)>,
 }
 
 impl Default for ImageInfo {
@@ -22,7 +22,7 @@ impl Default for ImageInfo {
             format: String::from("Unknown"),
 
             size: 0,
-            resolution: (0, 0),
+            resolution: None,
         }
     }
 }
@@ -72,7 +72,7 @@ pub fn get_image_info(img_path: &PathBuf) -> ImageInfo {
             format: img_format,
 
             size: filesize,
-            resolution: img.into_dimensions().unwrap_or_default(),
+            resolution: Some(img.into_dimensions().unwrap_or_default()),
         }
     } else {
         ImageInfo {
@@ -82,7 +82,7 @@ pub fn get_image_info(img_path: &PathBuf) -> ImageInfo {
             format: String::from("unknown"),
 
             size: filesize,
-            resolution: (0, 0),
+            resolution: None,
         }
     }
 }
@@ -119,7 +119,7 @@ pub fn calculate_initial_window_size(img_path: &PathBuf) -> Vec2 {
 
     if img_size.is_none() {
         let img_info = get_image_info(img_path);
-        img_size = Some(img_info.resolution);
+        img_size = Some(img_info.resolution.unwrap());
     }
 
     if let Some((img_width, img_height)) = img_size {
