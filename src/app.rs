@@ -498,7 +498,7 @@ impl App {
 
         let open_button = ui.button(format!("{} {}", icons::ICON_FILE_OPEN, "Open image [O] "));
         if open_button.clicked() {
-            ui.close_menu();
+            ui.close();
             self.open_image();
         }
 
@@ -508,7 +508,7 @@ impl App {
             "Copy image [Ctrl + C]"
         ));
         if copy_uri_button.clicked() {
-            ui.close_menu();
+            ui.close();
             self.copy_uri_to_clipboard();
         }
 
@@ -518,7 +518,7 @@ impl App {
             "Copy path [Ctrl + Shift + C]"
         ));
         if copy_path_button.clicked() {
-            ui.close_menu();
+            ui.close();
             self.copy_path_to_clipboard();
         }
 
@@ -647,7 +647,7 @@ impl App {
         ))
         .color(Color32::WHITE);
 
-        ui.allocate_new_ui(UiBuilder::new().max_rect(info_rect), |ui| {
+        ui.scope_builder(UiBuilder::new().max_rect(info_rect), |ui| {
             Frame::new()
                 .fill(self.app_state.background_color)
                 .multiply_with_opacity(0.95)
