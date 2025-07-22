@@ -11,7 +11,7 @@ struct Args {
     file_path: Option<String>,
 }
 
-fn main() -> Result<(), eframe::Error> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let img_path: Option<PathBuf>;
 
     let args = Args::parse();

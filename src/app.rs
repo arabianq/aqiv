@@ -146,54 +146,36 @@ impl App {
     }
 
     fn load_texture(&mut self, ui: &mut Ui) {
-        let color_image: ColorImage;
-        let width: u32;
-        let height: u32;
+        if let Some(resolution) = self.image_state.info.resolution {
+            let (width, height) = resolution;
+            let color_image = match self.image_state.info.format.as_str() {
+                "Svg" => ColorImage::from_rgba_premultiplied(
+                    [width as usize * 4, height as usize * 4],
+                    &self.image_state.info.bytes,
+                ),
+                _ => ColorImage::from_rgb(
+                    [width as usize, height as usize],
+                    &self.image_state.info.bytes,
+                ),
+            };
 
-        if self.image_state.info.format == "Svg" {
-            let svg_data = std::fs::read_to_string(&self.image_state.info.path).unwrap();
-            let usvg_tree = usvg::Tree::from_str(&svg_data, &usvg::Options::default()).unwrap();
-
-            let og_size = usvg_tree.size().to_int_size();
-            let og_width = og_size.width();
-            let og_height = og_size.height();
-
-            width = og_width * 4;
-            height = og_height * 4;
-
-            let mut pixmap = resvg::tiny_skia::Pixmap::new(width, height).unwrap();
-            let transform = resvg::tiny_skia::Transform::from_scale(4.0, 4.0);
-            resvg::render(&usvg_tree, transform, &mut pixmap.as_mut());
-
-            let bytes = pixmap.data().iter().as_slice();
-
-            color_image =
-                ColorImage::from_rgba_unmultiplied([width as usize, height as usize], bytes);
-        } else {
-            let image = image::open(&self.image_state.info.path).unwrap();
-            width = image.width();
-            height = image.height();
-            let bytes = image.as_bytes();
-
-            color_image = ColorImage::from_rgb([width as usize, height as usize], bytes);
+            self.image_state.texture_handle = Some(ui.ctx().load_texture(
+                "texture",
+                color_image,
+                Default::default(),
+            ));
+            self.image_state.sized_texture = Some(SizedTexture::new(
+                self.image_state.texture_handle.as_mut().unwrap().id(),
+                Vec2::new(width as f32, height as f32),
+            ));
         }
-
-        self.image_state.texture_handle = Some(ui.ctx().load_texture(
-            "texture",
-            color_image,
-            Default::default(),
-        ));
-        self.image_state.sized_texture = Some(SizedTexture::new(
-            self.image_state.texture_handle.as_mut().unwrap().id(),
-            Vec2::new(width as f32, height as f32),
-        ));
     }
 
-    fn load_new_image(&mut self, path: &PathBuf) -> bool {
-        let new_img_info = get_image_info(&path);
+    fn load_new_image(&mut self, path: &PathBuf) -> Result<bool, Box<dyn std::error::Error>> {
+        let new_img_info = get_image_info(&path)?;
 
         if new_img_info.resolution.is_none() {
-            return false;
+            return Ok(false);
         }
 
         self.image_state.uri_to_forget = Some(self.image_state.uri.clone());
@@ -206,7 +188,7 @@ impl App {
         self.image_state.texture_handle = None;
         self.image_state.sized_texture = None;
 
-        true
+        Ok(true)
     }
 
     fn open_image(&mut self) -> bool {
@@ -221,7 +203,7 @@ impl App {
             .pick_file();
 
         if let Some(file) = file {
-            self.load_new_image(&file);
+            self.load_new_image(&file).ok();
             return true;
         }
 
@@ -291,12 +273,12 @@ impl App {
         self.notify(String::from("Zoom Factor: 1.0"));
     }
 
-    fn next_image(&mut self, step: i128) {
+    fn next_image(&mut self, step: i128) -> Result<(), Box<dyn std::error::Error>> {
         let current_dir = self.image_state.info.path.parent().unwrap();
-        let all_files = std::fs::read_dir(current_dir).unwrap();
+        let all_files = std::fs::read_dir(current_dir)?;
         let mut img_files: Vec<PathBuf> = Vec::new();
         for file in all_files {
-            let file = file.unwrap();
+            let file = file?;
             let file_path = file.path();
             let extension = file_path.extension().unwrap_or_default();
 
@@ -341,8 +323,8 @@ impl App {
             };
 
             let new_file_pathbuf = img_files.get(new_file_index as usize).unwrap();
-            if self.load_new_image(new_file_pathbuf) {
-                break;
+            if self.load_new_image(new_file_pathbuf)? {
+                return Ok(());
             }
 
             self.notify(String::from(format!(
@@ -460,9 +442,9 @@ impl App {
             }
 
             if i.key_pressed(Key::ArrowRight) {
-                self.next_image(1);
+                self.next_image(1).ok();
             } else if i.key_pressed(Key::ArrowLeft) {
-                self.next_image(-1);
+                self.next_image(-1).ok();
             }
 
             if i.events.contains(&egui::Event::Copy) {
@@ -724,13 +706,13 @@ impl App {
     }
 }
 
-pub fn run(img_path: Option<PathBuf>) -> Result<(), eframe::Error> {
+pub fn run(img_path: Option<PathBuf>) -> Result<(), Box<dyn std::error::Error>> {
     let initial_window_size: Vec2;
     let img_info: ImageInfo;
 
     if let Some(img_path) = img_path {
-        initial_window_size = calculate_initial_window_size(&img_path);
-        img_info = get_image_info(&img_path);
+        img_info = get_image_info(&img_path)?;
+        initial_window_size = calculate_initial_window_size(&img_info);
     } else {
         initial_window_size = Vec2::new(600.0, 600.0);
         img_info = ImageInfo::default();
@@ -749,7 +731,7 @@ pub fn run(img_path: Option<PathBuf>) -> Result<(), eframe::Error> {
         ..Default::default()
     };
 
-    eframe::run_native(
+    match eframe::run_native(
         format!("Quick Image Viewer - {}", img_info.name).as_str(),
         options,
         Box::new(|cc| {
@@ -762,5 +744,8 @@ pub fn run(img_path: Option<PathBuf>) -> Result<(), eframe::Error> {
             egui_extras::install_image_loaders(&cc.egui_ctx);
             Ok(Box::new(App::new(cc, img_info)))
         }),
-    )
+    ) {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e.into()),
+    }
 }
