@@ -1,4 +1,4 @@
-use egui::{Pos2, Rect, Vec2};
+use egui::{ColorImage, Pos2, Rect, Vec2};
 use image::{GenericImageView, ImageFormat, ImageReader};
 use std::fmt::Write;
 use std::fs::read_to_string;
@@ -12,8 +12,6 @@ pub struct ImageInfo {
 
     pub size: u64,
     pub resolution: Option<(u32, u32)>,
-
-    pub bytes: Vec<u8>,
 }
 
 impl Default for ImageInfo {
@@ -26,8 +24,6 @@ impl Default for ImageInfo {
 
             size: 0,
             resolution: None,
-
-            bytes: Vec::new(),
         }
     }
 }
@@ -42,13 +38,13 @@ impl Clone for ImageInfo {
 
             size: self.size,
             resolution: self.resolution,
-
-            bytes: self.bytes.clone(),
         }
     }
 }
 
-pub fn get_image_info(img_path: &PathBuf) -> Result<ImageInfo, Box<dyn std::error::Error>> {
+pub fn get_image(
+    img_path: &PathBuf,
+) -> Result<(ImageInfo, ColorImage), Box<dyn std::error::Error>> {
     let img_path = absolute(img_path)?;
     let extension = img_path.extension().unwrap_or_default();
 
@@ -60,35 +56,48 @@ pub fn get_image_info(img_path: &PathBuf) -> Result<ImageInfo, Box<dyn std::erro
         let og_width = og_size.width();
         let og_height = og_size.height();
 
-        let width = og_width * 4;
-        let height = og_height * 4;
+        let scaled_width = og_width * 4;
+        let scaled_height = og_height * 4;
 
-        let mut pixmap = resvg::tiny_skia::Pixmap::new(width, height).unwrap();
+        let mut pixmap = resvg::tiny_skia::Pixmap::new(scaled_width, scaled_height).unwrap();
         let transform = resvg::tiny_skia::Transform::from_scale(4.0, 4.0);
         resvg::render(&usvg_tree, transform, &mut pixmap.as_mut());
 
         let image_bytes = pixmap.data().iter().as_slice().to_vec();
 
-        Ok(ImageInfo {
-            path: img_path.clone(),
-            name: img_path
-                .file_name()
-                .unwrap_or_default()
-                .to_string_lossy()
-                .to_string(),
-            format: "Svg".to_string(),
-            size: image_bytes.len() as u64,
-            resolution: Some((og_width, og_height)),
-            bytes: image_bytes,
-        })
-    } else {
-        if let Some(reader) = ImageReader::open(&img_path).ok() {
-            let image_format = reader.format().unwrap_or(ImageFormat::Png);
-            let image = reader.decode()?;
-            let image_resolution = image.dimensions();
-            let image_bytes = image.as_bytes().to_vec();
+        let color_image = ColorImage::from_rgba_unmultiplied(
+            [scaled_width as usize, scaled_height as usize],
+            &image_bytes,
+        );
 
-            Ok(ImageInfo {
+        Ok((
+            ImageInfo {
+                path: img_path.clone(),
+                name: img_path
+                    .file_name()
+                    .unwrap_or_default()
+                    .to_string_lossy()
+                    .to_string(),
+                format: "Svg".to_string(),
+                size: image_bytes.len() as u64,
+                resolution: Some((og_width, og_height)),
+            },
+            color_image,
+        ))
+    } else {
+        let reader = ImageReader::open(&img_path)?;
+        let image_format = reader.format().unwrap_or(ImageFormat::Png);
+        let image = reader.decode()?;
+        let image_resolution = image.dimensions();
+        let image_bytes = image.as_bytes().to_vec();
+
+        let color_image = ColorImage::from_rgb(
+            [image_resolution.0 as usize, image_resolution.1 as usize],
+            &image_bytes,
+        );
+
+        Ok((
+            ImageInfo {
                 path: img_path.clone(),
                 name: img_path
                     .file_name()
@@ -98,14 +107,9 @@ pub fn get_image_info(img_path: &PathBuf) -> Result<ImageInfo, Box<dyn std::erro
                 format: format!("{:?}", image_format),
                 size: image_bytes.len() as u64,
                 resolution: Some(image_resolution),
-                bytes: image_bytes,
-            })
-        } else {
-            Err(Box::new(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                "Failed to read image",
-            )))
-        }
+            },
+            color_image,
+        ))
     }
 }
 

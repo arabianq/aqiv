@@ -11,7 +11,7 @@ use egui::{
 use egui_material_icons::icons;
 use egui_notify::Toasts;
 use misc::{
-    ImageInfo, calculate_initial_window_size, calculate_uv_rect, convert_size, get_image_info,
+    ImageInfo, calculate_initial_window_size, calculate_uv_rect, convert_size, get_image,
     pathbuf_as_uri,
 };
 use rfd::FileDialog;
@@ -39,6 +39,7 @@ struct ImageState {
     uv_rect: Rect,
     offset: Vec2,
 
+    color_image: Option<ColorImage>,
     texture_handle: Option<TextureHandle>,
     sized_texture: Option<SizedTexture>,
 }
@@ -77,13 +78,20 @@ impl eframe::App for App {
                     }
                 }
 
-                if self.image_state.texture_handle.is_none()
-                    || self.image_state.sized_texture.is_none()
-                {
-                    self.load_texture(ui);
-                } else {
-                    self.render_img(ui);
+                if !self.image_state.color_image.is_none() {
+                    self.image_state.texture_handle = Some(ctx.load_texture(
+                        &self.image_state.uri,
+                        self.image_state.color_image.take().unwrap(),
+                        Default::default(),
+                    ));
+
+                    self.image_state.sized_texture = Some(SizedTexture::from_handle(
+                        &self.image_state.texture_handle.as_mut().unwrap(),
+                    ));
+                    self.image_state.color_image = None;
                 }
+
+                self.render_img(ui);
 
                 if let Some(uri) = &self.image_state.uri_to_forget {
                     ctx.forget_image(uri);
@@ -104,7 +112,11 @@ impl eframe::App for App {
 }
 
 impl App {
-    pub fn new(_cc: &eframe::CreationContext<'_>, img_info: ImageInfo) -> Self {
+    pub fn new(
+        _cc: &eframe::CreationContext<'_>,
+        img_info: ImageInfo,
+        color_image: ColorImage,
+    ) -> Self {
         let cfg = AppConfig::default();
 
         let image_state = ImageState {
@@ -119,6 +131,7 @@ impl App {
             uv_rect: Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)),
             offset: Vec2::ZERO,
 
+            color_image: Some(color_image),
             texture_handle: None,
             sized_texture: None,
         };
@@ -145,34 +158,8 @@ impl App {
         }
     }
 
-    fn load_texture(&mut self, ui: &mut Ui) {
-        if let Some(resolution) = self.image_state.info.resolution {
-            let (width, height) = resolution;
-            let color_image = match self.image_state.info.format.as_str() {
-                "Svg" => ColorImage::from_rgba_premultiplied(
-                    [width as usize * 4, height as usize * 4],
-                    &self.image_state.info.bytes,
-                ),
-                _ => ColorImage::from_rgb(
-                    [width as usize, height as usize],
-                    &self.image_state.info.bytes,
-                ),
-            };
-
-            self.image_state.texture_handle = Some(ui.ctx().load_texture(
-                "texture",
-                color_image,
-                Default::default(),
-            ));
-            self.image_state.sized_texture = Some(SizedTexture::new(
-                self.image_state.texture_handle.as_mut().unwrap().id(),
-                Vec2::new(width as f32, height as f32),
-            ));
-        }
-    }
-
     fn load_new_image(&mut self, path: &PathBuf) -> Result<bool, Box<dyn std::error::Error>> {
-        let new_img_info = get_image_info(&path)?;
+        let (new_img_info, new_color_image) = get_image(&path)?;
 
         if new_img_info.resolution.is_none() {
             return Ok(false);
@@ -184,9 +171,7 @@ impl App {
         self.image_state.uri = pathbuf_as_uri(&self.image_state.info.path);
         self.image_state.zoom_factor = 1.0;
         self.image_state.rotation = 0;
-        self.image_state.offset = Vec2::ZERO;
-        self.image_state.texture_handle = None;
-        self.image_state.sized_texture = None;
+        self.image_state.color_image = Some(new_color_image);
 
         Ok(true)
     }
@@ -709,13 +694,15 @@ impl App {
 pub fn run(img_path: Option<PathBuf>) -> Result<(), Box<dyn std::error::Error>> {
     let initial_window_size: Vec2;
     let img_info: ImageInfo;
+    let color_image: ColorImage;
 
     if let Some(img_path) = img_path {
-        img_info = get_image_info(&img_path)?;
+        (img_info, color_image) = get_image(&img_path)?;
         initial_window_size = calculate_initial_window_size(&img_info);
     } else {
         initial_window_size = Vec2::new(600.0, 600.0);
         img_info = ImageInfo::default();
+        color_image = ColorImage::default();
     }
 
     let options = eframe::NativeOptions {
@@ -742,7 +729,7 @@ pub fn run(img_path: Option<PathBuf>) -> Result<(), Box<dyn std::error::Error>> 
 
             egui_material_icons::initialize(&cc.egui_ctx);
             egui_extras::install_image_loaders(&cc.egui_ctx);
-            Ok(Box::new(App::new(cc, img_info)))
+            Ok(Box::new(App::new(cc, img_info, color_image)))
         }),
     ) {
         Ok(_) => Ok(()),
