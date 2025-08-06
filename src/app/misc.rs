@@ -1,7 +1,9 @@
+use crate::app::image_loaders::*;
+
 use egui::{ColorImage, Pos2, Rect, Vec2};
-use image::{GenericImageView, ImageFormat, ImageReader};
+use image::{DynamicImage, GenericImageView};
+use std::error::Error;
 use std::fmt::Write;
-use std::fs::read_to_string;
 use std::path::{PathBuf, absolute};
 
 pub struct ImageInfo {
@@ -42,56 +44,68 @@ impl Clone for ImageInfo {
     }
 }
 
-pub fn get_image(
-    img_path: &PathBuf,
-) -> Result<(ImageInfo, ColorImage), Box<dyn std::error::Error>> {
+pub fn get_image(img_path: &PathBuf) -> Result<(ImageInfo, ColorImage), Box<dyn Error>> {
     let img_path = absolute(img_path)?;
-    let extension = img_path.extension().unwrap_or_default();
+    let extension = img_path
+        .extension()
+        .and_then(|s| s.to_str())
+        .map(|s| s.to_lowercase());
 
-    if extension == "svg" {
-        let svg_data = read_to_string(&img_path)?;
-        let usvg_tree = usvg::Tree::from_str(&svg_data, &usvg::Options::default())?;
+    let mut loaders: Vec<(&str, fn(&Vec<u8>) -> Result<DynamicImage, Box<dyn Error>>)> = vec![
+        ("default", load_image_default),
+        ("raw", load_image_raw),
+        ("svg", load_image_svg),
+        ("heif", load_image_heif),
+        ("jxl", load_image_jpegxl),
+    ];
+    let formats = common_macros::hash_map! {
+        "default" => "Unknown",
+        "raw" => "RAW",
+        "svg" => "SVG",
+        "heif" => "HEIF",
+        "jxl" => "JPEG XL",
+    };
 
-        let og_size = usvg_tree.size().to_int_size();
-        let og_width = og_size.width();
-        let og_height = og_size.height();
+    // Determine default loader based on extension
+    if let Some(ref e) = extension {
+        if let Some(pos) = loaders.iter().position(|(ext, _)| ext == e) {
+            let loader = loaders.remove(pos);
+            loaders.insert(0, loader);
+        }
+    }
 
-        let scaled_width = og_width * 4;
-        let scaled_height = og_height * 4;
+    let buf = std::fs::read(&img_path)?;
 
-        let mut pixmap = resvg::tiny_skia::Pixmap::new(scaled_width, scaled_height).unwrap();
-        let transform = resvg::tiny_skia::Transform::from_scale(4.0, 4.0);
-        resvg::render(&usvg_tree, transform, &mut pixmap.as_mut());
+    let mut image: Option<DynamicImage> = None;
+    let mut image_format: Option<String> = None;
 
-        let image_bytes = pixmap.data().iter().as_slice().to_vec();
+    // Try every loader until it works
+    for &(ext, loader) in &loaders {
+        match loader(&buf) {
+            Ok(img) => image = Some(img),
+            Err(_err) => (),
+        }
+
+        if image.is_some() {
+            image_format = match ext {
+                "default" => {
+                    let reader = image::ImageReader::open(&img_path)?.with_guessed_format()?;
+                    let format = reader.format().unwrap();
+                    Some(format!("{:?}", format).to_uppercase())
+                }
+                _ => Some(formats[ext].to_string()),
+            };
+
+            // image_format = Some(formats[ext].to_string());
+            break;
+        }
+    }
+
+    if let Some(img) = &image {
+        let image_resolution = img.dimensions();
+        let image_bytes = img.as_bytes();
 
         let color_image = ColorImage::from_rgba_unmultiplied(
-            [scaled_width as usize, scaled_height as usize],
-            &image_bytes,
-        );
-
-        Ok((
-            ImageInfo {
-                path: img_path.clone(),
-                name: img_path
-                    .file_name()
-                    .unwrap_or_default()
-                    .to_string_lossy()
-                    .to_string(),
-                format: "Svg".to_string(),
-                size: image_bytes.len() as u64,
-                resolution: Some((og_width, og_height)),
-            },
-            color_image,
-        ))
-    } else {
-        let reader = ImageReader::open(&img_path)?;
-        let image_format = reader.format().unwrap_or(ImageFormat::Png);
-        let image = reader.decode()?;
-        let image_resolution = image.dimensions();
-        let image_bytes = image.as_bytes().to_vec();
-
-        let color_image = ColorImage::from_rgb(
             [image_resolution.0 as usize, image_resolution.1 as usize],
             &image_bytes,
         );
@@ -104,12 +118,14 @@ pub fn get_image(
                     .unwrap_or_default()
                     .to_string_lossy()
                     .to_string(),
-                format: format!("{:?}", image_format),
+                format: image_format.unwrap(),
                 size: image_bytes.len() as u64,
                 resolution: Some(image_resolution),
             },
             color_image,
         ))
+    } else {
+        Err("No loaders available".into())
     }
 }
 

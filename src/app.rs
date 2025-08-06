@@ -1,5 +1,6 @@
 mod config;
 mod misc;
+mod image_loaders;
 
 use clipboard_rs::{Clipboard, ClipboardContext};
 use config::AppConfig;
