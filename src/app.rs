@@ -22,9 +22,11 @@ use wl_clipboard_rs::copy::{
     MimeType as ClipboardMimeType, Options as ClipboardOptions, Source as ClipboardSource,
 };
 
-const SUPPORTED_EXTENSIONS: [&str; 17] = [
+const SUPPORTED_EXTENSIONS: [&str; 42] = [
     "avif", "bmp", "dds", "ff", "gif", "hdr", "ico", "jpeg", "jpg", "exr", "png", "pnm", "qoi",
-    "svg", "tga", "tiff", "webp",
+    "svg", "tga", "tiff", "webp", "heif", "jxl", "mrw", "arw", "srf", "sr2", "mef", "orf", "srw",
+    "erf", "kdc", "dcs", "rw2", "raf", "dcr", "dng", "pef", "crw", "iiq", "3fr", "nrw", "nef",
+    "mos", "cr2", "ari",
 ];
 
 struct ImageState {
