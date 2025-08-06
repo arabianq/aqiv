@@ -5,7 +5,7 @@ A fast, lightweight, and feature-rich image viewer built with Rust and egui.
 ## Features
 
 - **Fast Performance**: Built with Rust for maximum speed and efficiency
-- **Wide Format Support**: Supports AVIF, BMP, DDS, GIF, HDR, ICO, JPEG, EXR, PNG, PNM, QOI, TGA, TIFF, WebP, and SVG
+- **Wide Format Support**: Supports AVIF, BMP, DDS, GIF, HDR, ICO, JPEG, EXR, PNG, PNM, QOI, TGA, TIFF, WebP, SVG, HEIF, JPEG XL and RAW
 - **Intuitive Controls**: Easy-to-use keyboard shortcuts for all operations
 - **Image Manipulation**:
     - Zoom in/out with mouse wheel or keyboard
