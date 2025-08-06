@@ -1,4 +1,3 @@
-#![windows_subsystem = "windows"]
 mod app;
 
 use clap::Parser;

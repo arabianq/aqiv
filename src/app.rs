@@ -1,6 +1,6 @@
 mod config;
-mod misc;
 mod image_loaders;
+mod misc;
 
 use clipboard_rs::{Clipboard, ClipboardContext};
 use config::AppConfig;
@@ -18,7 +18,6 @@ use misc::{
 use rfd::FileDialog;
 use std::path::PathBuf;
 use std::time::Duration;
-#[cfg(target_os = "linux")]
 use wl_clipboard_rs::copy::{
     MimeType as ClipboardMimeType, Options as ClipboardOptions, Source as ClipboardSource,
 };
@@ -52,8 +51,6 @@ struct AppState {
     maintain_aspect_ratio: bool,
     show_info: bool,
     dragging: bool,
-    #[cfg(target_os = "macos")]
-    first_frame_passed: bool,
 
     toasts: Toasts,
     notification_duration: Option<Duration>,
@@ -103,11 +100,6 @@ impl eframe::App for App {
                 }
 
                 self.app_state.toasts.show(ctx); // Show all notifications
-
-                #[cfg(target_os = "macos")]
-                {
-                    self.app_state.first_frame_passed = true;
-                }
             });
     }
 }
@@ -144,8 +136,6 @@ impl App {
             maintain_aspect_ratio: cfg.maintain_aspect_ratio,
             show_info: cfg.show_info,
             dragging: false,
-            #[cfg(target_os = "macos")]
-            first_frame_passed: false,
 
             toasts: Toasts::default(),
             notification_duration: Option::from(Duration::from_millis(
@@ -178,11 +168,6 @@ impl App {
     }
 
     fn open_image(&mut self) -> bool {
-        #[cfg(target_os = "macos")]
-        if !self.app_state.first_frame_passed {
-            return true;
-        }
-
         let file = FileDialog::new()
             .set_directory(dirs::home_dir().unwrap_or_default())
             .add_filter("image", &SUPPORTED_EXTENSIONS)
@@ -329,9 +314,8 @@ impl App {
             .set_text(self.image_state.info.path.to_string_lossy().to_string())
             .unwrap();
 
-        // Clipboard-rs does not support wayland, so I have to use wl-clipboard-rs on linux in addition to it
+        // Clipboard-rs does not support wayland, so I have to use wl-clipboard-rs in addition to it
         // BTW I don't know how will it work in xorg session =P
-        #[cfg(target_os = "linux")]
         {
             let opts = ClipboardOptions::new();
             opts.copy(
@@ -354,20 +338,11 @@ impl App {
     fn copy_uri_to_clipboard(&mut self) {
         let clipboard_ctx = ClipboardContext::new().unwrap();
 
-        // Idk why windows does not handle uri in clipboard correctly, but it does handle path =\
-        #[cfg(target_os = "windows")]
-        clipboard_ctx
-            .set_files(vec![
-                self.image_state.info.path.to_string_lossy().to_string(),
-            ])
-            .ok();
-        #[cfg(not(target_os = "windows"))]
         clipboard_ctx
             .set_files(vec![self.image_state.uri.to_string()])
             .ok();
 
         // For wayland
-        #[cfg(target_os = "linux")]
         {
             let opts = ClipboardOptions::new();
             opts.copy(
