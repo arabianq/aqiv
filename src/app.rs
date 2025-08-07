@@ -149,7 +149,7 @@ impl App {
             })
             .collect();
 
-        img_files.sort_by(|a, b| {
+        img_files.par_sort_by(|a, b| {
             let a_name = a.file_name().unwrap_or_default();
             let b_name = b.file_name().unwrap_or_default();
 
