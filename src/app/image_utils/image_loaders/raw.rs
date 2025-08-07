@@ -1,71 +1,7 @@
-use image::{DynamicImage, RgbImage, RgbaImage};
-use jpegxl_rs::image::ToDynamic;
-use libheif_rs::{HeifContext, LibHeif};
+use image::{DynamicImage, RgbImage};
+
 use rayon::prelude::*;
 use std::error::Error;
-
-pub fn load_image_default(buf: &Vec<u8>) -> Result<DynamicImage, Box<dyn Error>> {
-    let rgba_image = image::load_from_memory(buf)?.to_rgba8();
-    Ok(DynamicImage::ImageRgba8(rgba_image))
-}
-
-pub fn load_image_svg(buf: &Vec<u8>) -> Result<DynamicImage, Box<dyn Error>> {
-    let usvg_tree = usvg::Tree::from_data(buf, &usvg::Options::default())?;
-
-    let og_size = usvg_tree.size().to_int_size();
-    let width = og_size.width();
-    let height = og_size.height();
-
-    let mut pixmap = resvg::tiny_skia::Pixmap::new(width, height).unwrap();
-    let transform = resvg::tiny_skia::Transform::default();
-    resvg::render(&usvg_tree, transform, &mut pixmap.as_mut());
-
-    let image_data = pixmap.data();
-    let rgba_image = RgbaImage::from_raw(width, height, image_data.to_vec())
-        .ok_or("Failed to create RgbaImage")?;
-
-    Ok(DynamicImage::ImageRgba8(rgba_image))
-}
-
-pub fn load_image_heif(buf: &Vec<u8>) -> Result<DynamicImage, Box<dyn Error>> {
-    let lib_heif = LibHeif::new();
-    let ctx = HeifContext::read_from_bytes(buf)?;
-    let handle = ctx.primary_image_handle()?;
-
-    let image = lib_heif.decode(
-        &handle,
-        libheif_rs::ColorSpace::Rgb(libheif_rs::RgbChroma::Rgb),
-        None,
-    )?;
-    let plane = image.planes().interleaved.unwrap();
-    let width = plane.width;
-    let height = plane.height;
-    let stride = plane.stride;
-
-    let rgb_data: Vec<u8> = (0..height)
-        .into_par_iter()
-        .flat_map_iter(|y| {
-            let row_start = y as usize * stride;
-            let row_end = row_start + (width * 3) as usize;
-            &plane.data[row_start..row_end]
-        })
-        .cloned()
-        .collect();
-
-    let rgb_image =
-        RgbImage::from_raw(width, height, rgb_data).ok_or("Failed to create RgbImage")?;
-    let rgba_image = DynamicImage::ImageRgb8(rgb_image).to_rgba8();
-
-    Ok(DynamicImage::ImageRgba8(rgba_image))
-}
-
-pub fn load_image_jpegxl(buf: &Vec<u8>) -> Result<DynamicImage, Box<dyn Error>> {
-    let decoder = jpegxl_rs::decoder_builder().build()?;
-    let image = decoder.decode_to_image(buf)?.unwrap();
-    let rgba_image = image.to_rgba8();
-
-    Ok(DynamicImage::ImageRgba8(rgba_image))
-}
 
 pub fn load_image_raw(buf: &Vec<u8>) -> Result<DynamicImage, Box<dyn Error>> {
     // I still don't know does it actually works good or not
