@@ -228,16 +228,16 @@ impl App {
         );
 
         let info_text = RichText::new(format!(
-            "Name: {}\nFormat: {}\nFile Size: {}\nResolution: {}\nPath: {}",
+            "File Name: {}\nFile Path: {}\nFile Size: {}\nImage Format: {}\nImage Resolution: {}",
             self.image_state.info.name,
-            self.image_state.info.format,
+            self.image_state.info.path.display(),
             convert_size(self.image_state.info.size as f64),
+            self.image_state.info.format,
             format!(
                 "{}x{}",
                 self.image_state.info.resolution.unwrap().0,
                 self.image_state.info.resolution.unwrap().1
             ),
-            self.image_state.info.path.display()
         ))
         .color(Color32::WHITE);
 
