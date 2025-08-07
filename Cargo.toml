@@ -20,7 +20,7 @@ egui_material_icons = "0.4.0"
 image = { version = "0.25.6", default-features = false, features = ["rayon", "avif", "bmp", "dds", "ff", "gif", "hdr", "ico", "jpeg", "exr", "png", "pnm", "qoi", "tga", "tiff", "webp"] }
 resvg = { version = "0.45.1", default-features = false, features = ["raster-images"] }
 usvg = { version = "0.45.1", default-features = false }
-libheif-rs = { version = "2.2.0", default-features = false, features = ["v1_17"] }
+libheif-rs = { version = "2.3.0", default-features = false, features = ["v1_17"] }
 jpegxl-rs = { version = "0.11.2", default-features = false, features = ["image"] }
 rawloader = "0.37.1"
 bayer = { version = "0.1.5", default-features = false, features = ["rayon"] }
