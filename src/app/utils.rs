@@ -66,10 +66,10 @@ pub fn convert_size(size_bytes: f64) -> String {
     let i = i.min(UNITS.len().saturating_sub(1));
 
     let p = 1024_f64.powf(i as f64);
-    let s = (size_bytes / p).round();
+    let s = size_bytes / p;
 
     let mut buffer = String::with_capacity(10);
-    write!(&mut buffer, "{:.2} {}", s / 100.0, UNITS[i]).unwrap();
+    write!(&mut buffer, "{:.2} {}", s, UNITS[i]).unwrap();
 
     buffer
 }

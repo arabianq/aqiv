@@ -242,7 +242,7 @@ pub fn get_image_info(img_path: &PathBuf) -> Result<(ImageInfo, ColorImage), Box
                     .to_string_lossy()
                     .to_string(),
                 format: image_format.unwrap(),
-                size: image_bytes.len() as u64,
+                size: std::fs::metadata(&img_path)?.len(),
                 resolution: Some(image_resolution),
             },
             color_image,
