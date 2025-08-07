@@ -49,7 +49,7 @@ assets = [
     { source = "target/release/aqiv", dest = "usr/bin/", mode = "755" },
     { source = "aqiv.desktop", dest = "usr/share/applications/aqiv.desktop", mode = "644" },
 ]
-depends = ["libx11-6", "libgcc-s1", "libc6", "libxcb1", "libxau6"]
+depends = ["libx11-6"]
 
 [package.metadata.generate-rpm]
 assets = [
@@ -59,10 +59,6 @@ assets = [
 
 [package.metadata.generate-rpm.requires]
 libX11 = "*"
-libgcc = "*"
-glibc = "*"
-libxcb = "*"
-libXau = "*"
 
 [package.metadata.bundle]
 name = "AQIV"
