@@ -130,19 +130,24 @@ impl App {
 
     fn next_image(&mut self, step: i128) -> Result<(), Box<dyn std::error::Error>> {
         let current_dir = self.image_state.info.path.parent().unwrap();
-        let all_files = std::fs::read_dir(current_dir)?;
-        let mut img_files: Vec<PathBuf> = Vec::new();
-        for file in all_files {
-            let file = file?;
-            let file_path = file.path();
-            let extension = file_path.extension().unwrap_or_default();
+        let mut img_files: Vec<PathBuf> = std::fs::read_dir(current_dir)?
+            .filter_map(|entry| {
+                entry.ok().and_then(|e| {
+                    let path = e.path();
+                    let ext = path
+                        .extension()
+                        .and_then(|e| e.to_str())
+                        .map(|e| e.to_lowercase())
+                        .unwrap_or_default();
 
-            if !SUPPORTED_EXTENSIONS.contains(&extension.to_str().unwrap()) {
-                continue;
-            }
-
-            img_files.push(file_path);
-        }
+                    if SUPPORTED_EXTENSIONS.contains(&ext.as_str()) {
+                        Some(path)
+                    } else {
+                        None
+                    }
+                })
+            })
+            .collect();
 
         img_files.sort_by(|a, b| {
             let a_name = a.file_name().unwrap_or_default();
