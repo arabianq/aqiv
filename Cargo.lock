@@ -103,6 +103,7 @@ dependencies = [
  "jpegxl-rs",
  "libheif-rs",
  "rawloader",
+ "rayon 1.10.0",
  "resvg",
  "rfd",
  "screen_size",
@@ -1221,6 +1222,7 @@ dependencies = [
  "nohash-hasher",
  "parking_lot",
  "profiling",
+ "rayon 1.10.0",
 ]
 
 [[package]]
@@ -1785,6 +1787,7 @@ dependencies = [
  "png",
  "qoi",
  "ravif",
+ "rayon 1.10.0",
  "rgb",
  "tiff",
  "zune-core",
@@ -2068,6 +2071,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8ea1f30cedd69f0a2954655f7188c6a834246d2bcf1e315e2ac40c4b24dc9519"
 dependencies = [
  "cfg-if",
+ "rayon 1.10.0",
 ]
 
 [[package]]
@@ -3103,6 +3107,7 @@ dependencies = [
  "loop9",
  "quick-error 2.0.1",
  "rav1e",
+ "rayon 1.10.0",
  "rgb",
 ]
 

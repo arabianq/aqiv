@@ -15,6 +15,7 @@ use misc::{
     ImageInfo, calculate_initial_window_size, calculate_uv_rect, convert_size, get_image,
     pathbuf_as_uri,
 };
+use rayon::prelude::*;
 use rfd::FileDialog;
 use std::path::PathBuf;
 use std::time::Duration;
@@ -273,8 +274,8 @@ impl App {
         });
 
         let current_file_index = img_files
-            .iter()
-            .position(|f| f == &self.image_state.info.path)
+            .par_iter()
+            .position_any(|f| f == &self.image_state.info.path)
             .unwrap() as i128;
         let max_index = img_files.len() as i128 - 1;
 

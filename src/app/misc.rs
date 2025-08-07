@@ -2,6 +2,7 @@ use crate::app::image_loaders::*;
 
 use egui::{ColorImage, Pos2, Rect, Vec2};
 use image::{DynamicImage, GenericImageView};
+use rayon::prelude::*;
 use std::error::Error;
 use std::fmt::Write;
 use std::path::{PathBuf, absolute};
@@ -68,7 +69,7 @@ pub fn get_image(img_path: &PathBuf) -> Result<(ImageInfo, ColorImage), Box<dyn 
 
     // Determine default loader based on extension
     if let Some(ref e) = extension {
-        if let Some(pos) = loaders.iter().position(|(ext, _)| ext == e) {
+        if let Some(pos) = loaders.par_iter().position_any(|(ext, _)| ext == e) {
             let loader = loaders.remove(pos);
             loaders.insert(0, loader);
         }
@@ -95,8 +96,6 @@ pub fn get_image(img_path: &PathBuf) -> Result<(ImageInfo, ColorImage), Box<dyn 
                 }
                 _ => Some(formats[ext].to_string()),
             };
-
-            // image_format = Some(formats[ext].to_string());
             break;
         }
     }
