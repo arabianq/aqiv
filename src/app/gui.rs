@@ -98,8 +98,6 @@ impl App {
         });
         if info_button.clicked() {
             self.app_state.toggle_show_info();
-            self.app_state
-                .notify(format!("Show info: {}", self.app_state.show_info));
         }
 
         let aspect_ratio_button = ui.button(match self.app_state.maintain_aspect_ratio {

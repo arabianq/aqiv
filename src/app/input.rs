@@ -27,8 +27,6 @@ impl App {
             // Show Info on I
             if i.key_pressed(Key::I) {
                 self.app_state.toggle_show_info();
-                self.app_state
-                    .notify(format!("Show info: {}", self.app_state.show_info));
             }
 
             // Horizontal Flip on H
