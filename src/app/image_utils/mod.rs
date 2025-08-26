@@ -178,14 +178,12 @@ pub fn get_image_info(img_path: &PathBuf) -> Result<(ImageInfo, ColorImage), Box
 
     let mut loaders: Vec<(&str, fn(&Vec<u8>) -> Result<DynamicImage, Box<dyn Error>>)> = vec![
         ("default", load_image_default),
-        ("raw", load_image_raw),
         ("svg", load_image_svg),
         ("heif", load_image_heif),
         ("jxl", load_image_jpegxl),
     ];
     let formats = common_macros::hash_map! {
         "default" => "Unknown",
-        "raw" => "RAW",
         "svg" => "SVG",
         "heif" => "HEIF",
         "jxl" => "JPEG XL",
