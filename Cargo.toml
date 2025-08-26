@@ -18,6 +18,7 @@ egui-notify = "0.20.0"
 egui_material_icons = "0.4.0"
 
 image = { version = "0.25.6", default-features = false, features = ["rayon", "avif", "bmp", "dds", "ff", "gif", "hdr", "ico", "jpeg", "exr", "png", "pnm", "qoi", "tga", "tiff", "webp"] }
+magick_rust = "1.1.0"
 resvg = { version = "0.45.1", default-features = false, features = ["raster-images"] }
 usvg = { version = "0.45.1", default-features = false }
 libheif-rs = { version = "2.3.0", default-features = false, features = ["v1_17"] }
