@@ -181,12 +181,14 @@ pub fn get_image_info(img_path: &PathBuf) -> Result<(ImageInfo, ColorImage), Box
         ("svg", load_image_svg),
         ("heif", load_image_heif),
         ("jxl", load_image_jpegxl),
+        ("fallback", load_image_fallback),
     ];
     let formats = common_macros::hash_map! {
         "default" => "Unknown",
         "svg" => "SVG",
         "heif" => "HEIF",
         "jxl" => "JPEG XL",
+        "fallback" => "Unknown"
     };
 
     // Determine default loader based on extension
@@ -211,7 +213,7 @@ pub fn get_image_info(img_path: &PathBuf) -> Result<(ImageInfo, ColorImage), Box
 
         if image.is_some() {
             image_format = match ext {
-                "default" => {
+                "default" | "fallback" => {
                     let reader = image::ImageReader::open(&img_path)?.with_guessed_format()?;
                     let format = reader.format().unwrap();
                     Some(format!("{:?}", format).to_uppercase())
