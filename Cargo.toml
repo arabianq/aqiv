@@ -24,7 +24,7 @@ usvg = { version = "0.45.1", default-features = false }
 libheif-rs = { version = "2.3.0", default-features = false, features = ["v1_17"] }
 jpegxl-rs = { version = "0.11.2", default-features = false, features = ["image"] }
 
-clap = { version = "4.5.46", default-features = false, features = ["derive", "std"] }
+clap = { version = "4.5.47", default-features = false, features = ["derive", "std"] }
 dirs = "6.0.0"
 rfd = { version = "0.15.4", default-features = false, features = ["xdg-portal", "async-std"] }
 
