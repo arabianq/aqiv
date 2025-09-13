@@ -13,7 +13,6 @@ homepage = "https://aqiv.arabianq.ru"
 [dependencies]
 egui = { version = "0.32.2", default-features = false, features = ["rayon"] }
 eframe = { version = "0.32.2", default-features = false, features = ["glow", "wayland", "x11", "default_fonts"] }
-egui_extras = { version = "0.32.2", default-features = false, features = ["image"] }
 egui-notify = "0.20.0"
 egui_material_icons = "0.4.0"
 

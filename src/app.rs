@@ -234,7 +234,6 @@ pub fn run(img_path: Option<PathBuf>) -> Result<(), Box<dyn std::error::Error>> 
             });
 
             egui_material_icons::initialize(&cc.egui_ctx);
-            egui_extras::install_image_loaders(&cc.egui_ctx);
             Ok(Box::new(App::new(cc, img_info, color_image)))
         }),
     ) {
