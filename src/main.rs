@@ -18,13 +18,11 @@ struct Args {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     START.call_once(magick_wand_genesis);
 
-    let img_path: Option<PathBuf>;
-
     let args = Args::parse();
     let img_path_arg = args.file_path.unwrap_or_default();
 
-    if img_path_arg.is_empty() {
-        img_path = None;
+    let img_path = if img_path_arg.is_empty() {
+        None
     } else {
         let _img_path = PathBuf::from(img_path_arg).canonicalize().unwrap();
 
@@ -33,8 +31,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             std::process::exit(1);
         }
 
-        img_path = Some(_img_path);
-    }
+        Some(_img_path)
+    };
 
     app::run(img_path)
 }
