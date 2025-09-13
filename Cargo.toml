@@ -20,7 +20,7 @@ image = { version = "0.25.8", default-features = false, features = ["rayon", "av
 magick_rust = "1.1.0"
 resvg = { version = "0.45.1", default-features = false, features = ["raster-images"] }
 usvg = { version = "0.45.1", default-features = false }
-libheif-rs = { version = "2.3.0", default-features = false, features = ["v1_17"] }
+libheif-rs = { version = "2.4.0", default-features = false, features = ["v1_17"] }
 jpegxl-rs = { version = "0.11.2", default-features = false, features = ["image"] }
 
 clap = { version = "4.5.47", default-features = false, features = ["derive", "std"] }
