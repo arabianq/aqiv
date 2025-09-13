@@ -8,7 +8,7 @@ mod utils;
 use config::AppConfig;
 use image_utils::{ImageInfo, ImageState, get_image_info};
 use state::AppState;
-use utils::{calculate_initial_window_size, pathbuf_as_uri};
+use utils::{calculate_initial_window_size, path_as_uri};
 
 use eframe::CreationContext;
 use egui::{CentralPanel, ColorImage, Context, Frame, Pos2, Rect, Vec2, load::SizedTexture};
@@ -78,7 +78,7 @@ impl App {
         let image_state = ImageState {
             info: img_info.clone(),
 
-            uri: pathbuf_as_uri(&img_info.path),
+            uri: path_as_uri(&img_info.path),
             uri_to_forget: None,
 
             rotation: 0,

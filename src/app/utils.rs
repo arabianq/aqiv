@@ -3,7 +3,7 @@ use crate::app::image_utils::ImageInfo;
 use egui::{Pos2, Rect, Vec2};
 
 use std::fmt::Write;
-use std::path::PathBuf;
+use std::path::Path;
 
 pub fn calculate_uv_rect(window_size: Pos2, zoom_factor: f32, offset: Vec2) -> Rect {
     let window_center = window_size / 2.0;
@@ -72,7 +72,7 @@ pub fn convert_size(size_bytes: f64) -> String {
     buffer
 }
 
-pub fn pathbuf_as_uri(path_buf: &PathBuf) -> String {
+pub fn path_as_uri(path_buf: &Path) -> String {
     let path_str = path_buf.to_str().unwrap_or_default();
     format!("file://{}", path_str)
 }

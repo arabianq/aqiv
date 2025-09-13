@@ -3,7 +3,7 @@ mod image_loaders;
 pub use image_info::ImageInfo;
 pub use image_state::ImageState;
 
-use crate::app::utils::pathbuf_as_uri;
+use crate::app::utils::path_as_uri;
 use image_loaders::*;
 
 use clipboard_rs::{Clipboard, ClipboardContext};
@@ -91,7 +91,7 @@ pub mod image_state {
             self.uri_to_forget = Some(self.uri.clone());
 
             self.info = new_img_info;
-            self.uri = pathbuf_as_uri(&self.info.path);
+            self.uri = path_as_uri(&self.info.path);
             self.zoom_factor = 1.0;
             self.rotation = 0;
             self.color_image = Some(new_color_image);
