@@ -99,6 +99,8 @@ aqiv "C:\Users\Name\Desktop\image with spaces.gif"
 | `Mouse Wheel`       | Zoom in/out (centered on mouse cursor)    |
 | `W`                 | Zoom in                                   |
 | `S`                 | Zoom out                                  |
+| `Ctrl+Plus`         | Increase UI scale                         |
+| `Ctrl+Minus`        | Decrease UI scale                         |
 | `Mouse Drag`        | Pan/move the image                        |
 
 ## Configuration

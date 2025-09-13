@@ -4,6 +4,8 @@ use egui::{Context, Key, Ui};
 
 impl App {
     pub fn handle_input(&mut self, ui: &mut Ui, ctx: &Context) {
+        let mut ui_scale_factor = ctx.zoom_factor();
+
         ctx.input(|i| {
             // Exit on Escape
             if i.key_pressed(Key::Escape) {
@@ -65,6 +67,16 @@ impl App {
                 self.app_state.notify(String::from("Zoom Factor: 1.0"));
             }
 
+            // Increase UI scale on Ctrl+Plus
+            if i.modifiers.ctrl && i.key_pressed(Key::Plus) {
+                ui_scale_factor += 0.1;
+            }
+
+            // Decrease UI scale on Ctrl+Minus
+            if i.modifiers.ctrl && i.key_pressed(Key::Minus) {
+                ui_scale_factor -= 0.1;
+            }
+
             if i.key_pressed(Key::ArrowRight) {
                 self.next_image(1).ok();
             } else if i.key_pressed(Key::ArrowLeft) {
@@ -115,5 +127,7 @@ impl App {
 
             self.app_state.dragging = i.pointer.primary_down();
         });
+
+        ctx.set_zoom_factor(ui_scale_factor);
     }
 }
