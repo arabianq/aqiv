@@ -176,7 +176,8 @@ pub fn get_image_info(img_path: &PathBuf) -> Result<(ImageInfo, ColorImage), Box
         .and_then(|s| s.to_str())
         .map(|s| s.to_lowercase());
 
-    let mut loaders: Vec<(&str, fn(&[u8]) -> Result<DynamicImage, Box<dyn Error>>)> = vec![
+    type LoaderFn = fn(&[u8]) -> Result<DynamicImage, Box<dyn Error>>;
+    let mut loaders: Vec<(&str, LoaderFn)> = vec![
         ("default", load_image_default),
         ("svg", load_image_svg),
         ("heif", load_image_heif),
@@ -193,10 +194,11 @@ pub fn get_image_info(img_path: &PathBuf) -> Result<(ImageInfo, ColorImage), Box
 
     // Determine default loader based on extension
     if let Some(ref e) = extension
-        && let Some(pos) = loaders.par_iter().position_any(|(ext, _)| ext == e) {
-            let loader = loaders.remove(pos);
-            loaders.insert(0, loader);
-        }
+        && let Some(pos) = loaders.par_iter().position_any(|(ext, _)| ext == e)
+    {
+        let loader = loaders.remove(pos);
+        loaders.insert(0, loader);
+    }
 
     let buf = std::fs::read(&img_path)?;
 
