@@ -72,8 +72,10 @@ impl eframe::App for App {
 }
 
 impl App {
-    pub fn new(_cc: &CreationContext<'_>, img_info: ImageInfo, color_image: ColorImage) -> Self {
+    pub fn new(cc: &CreationContext<'_>, img_info: ImageInfo, color_image: ColorImage) -> Self {
         let cfg = AppConfig::default();
+
+        cc.egui_ctx.set_zoom_factor(cfg.default_ui_scale);
 
         let image_state = ImageState {
             info: img_info.clone(),

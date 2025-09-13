@@ -7,6 +7,7 @@ pub struct AppConfig {
     pub show_info: bool,
 
     pub notification_duration_millis: u64,
+    pub default_ui_scale: f32,
 }
 
 impl Default for AppConfig {
@@ -18,6 +19,7 @@ impl Default for AppConfig {
             show_info: false,
 
             notification_duration_millis: 500,
+            default_ui_scale: 1.25,
         }
     }
 }
