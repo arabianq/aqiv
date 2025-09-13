@@ -41,7 +41,7 @@ strip = true
 lto = true
 codegen-units = 1
 opt-level = "z"
-panic = "unwind"
+panic = "abort"
 
 [package.metadata.deb]
 assets = [
