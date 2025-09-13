@@ -2,7 +2,7 @@ use image::{DynamicImage, RgbaImage};
 
 use std::error::Error;
 
-pub fn load_image_svg(buf: &Vec<u8>) -> Result<DynamicImage, Box<dyn Error>> {
+pub fn load_image_svg(buf: &[u8]) -> Result<DynamicImage, Box<dyn Error>> {
     let usvg_tree = usvg::Tree::from_data(buf, &usvg::Options::default())?;
 
     let og_size = usvg_tree.size().to_int_size();

@@ -4,7 +4,7 @@ use libheif_rs::{HeifContext, LibHeif};
 use rayon::prelude::*;
 use std::error::Error;
 
-pub fn load_image_heif(buf: &Vec<u8>) -> Result<DynamicImage, Box<dyn Error>> {
+pub fn load_image_heif(buf: &[u8]) -> Result<DynamicImage, Box<dyn Error>> {
     let lib_heif = LibHeif::new();
     let ctx = HeifContext::read_from_bytes(buf)?;
     let handle = ctx.primary_image_handle()?;

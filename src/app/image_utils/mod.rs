@@ -176,7 +176,7 @@ pub fn get_image_info(img_path: &PathBuf) -> Result<(ImageInfo, ColorImage), Box
         .and_then(|s| s.to_str())
         .map(|s| s.to_lowercase());
 
-    let mut loaders: Vec<(&str, fn(&Vec<u8>) -> Result<DynamicImage, Box<dyn Error>>)> = vec![
+    let mut loaders: Vec<(&str, fn(&[u8]) -> Result<DynamicImage, Box<dyn Error>>)> = vec![
         ("default", load_image_default),
         ("svg", load_image_svg),
         ("heif", load_image_heif),

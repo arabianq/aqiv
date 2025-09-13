@@ -3,7 +3,7 @@ use magick_rust::MagickWand;
 
 use std::error::Error;
 
-pub fn load_image_default(buf: &Vec<u8>) -> Result<DynamicImage, Box<dyn Error>> {
+pub fn load_image_default(buf: &[u8]) -> Result<DynamicImage, Box<dyn Error>> {
     let wand = MagickWand::new();
     wand.read_image_blob(buf)?;
 
