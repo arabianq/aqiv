@@ -16,8 +16,8 @@ use egui_notify::Toasts;
 
 use rayon::prelude::*;
 use rfd::FileDialog;
-use std::path::PathBuf;
-use std::time::Duration;
+
+use std::{path::PathBuf, time::Duration};
 
 const SUPPORTED_EXTENSIONS: [&str; 42] = [
     "avif", "bmp", "dds", "ff", "gif", "hdr", "ico", "jpeg", "jpg", "exr", "png", "pnm", "qoi",

@@ -3,8 +3,8 @@ mod app;
 use magick_rust::magick_wand_genesis;
 
 use clap::Parser;
-use std::path::PathBuf;
-use std::sync::Once;
+
+use std::{path::PathBuf, sync::Once};
 
 static START: Once = Once::new();
 

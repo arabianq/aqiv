@@ -2,8 +2,7 @@ use crate::app::image_utils::ImageInfo;
 
 use egui::{Pos2, Rect, Vec2};
 
-use std::fmt::Write;
-use std::path::Path;
+use std::{fmt::Write, path::Path};
 
 pub fn calculate_uv_rect(window_size: Pos2, zoom_factor: f32, offset: Vec2) -> Rect {
     let window_center = window_size / 2.0;

@@ -15,8 +15,10 @@ use egui::{ColorImage, Rect, TextureHandle, Vec2, load::SizedTexture};
 use image::{DynamicImage, GenericImageView};
 use rayon::prelude::*;
 
-use std::error::Error;
-use std::path::{PathBuf, absolute};
+use std::{
+    error::Error,
+    path::{PathBuf, absolute},
+};
 
 pub mod image_info {
     use super::*;
