@@ -39,13 +39,11 @@ impl eframe::App for App {
 
                 self.handle_input(ui, ctx);
 
-                if !self.image_state.info.path.exists() {
-                    if !self.open_image() {
-                        std::process::exit(0);
-                    }
+                if !self.image_state.info.path.exists() && !self.open_image() {
+                    std::process::exit(0);
                 }
 
-                if !self.image_state.color_image.is_none() {
+                if self.image_state.color_image.is_some() {
                     self.image_state.texture_handle = Some(ctx.load_texture(
                         &self.image_state.uri,
                         self.image_state.color_image.take().unwrap(),
@@ -53,7 +51,7 @@ impl eframe::App for App {
                     ));
 
                     self.image_state.sized_texture = Some(SizedTexture::from_handle(
-                        &self.image_state.texture_handle.as_mut().unwrap(),
+                        self.image_state.texture_handle.as_mut().unwrap(),
                     ));
                     self.image_state.color_image = None;
                 }
@@ -188,10 +186,10 @@ impl App {
                 return Ok(());
             }
 
-            self.app_state.notify(String::from(format!(
+            self.app_state.notify(format!(
                 "Couldn't open {}",
                 new_file_pathbuf.to_str().unwrap()
-            )));
+            ));
 
             broken_indexes.push(new_file_index);
             new_file_index += step;

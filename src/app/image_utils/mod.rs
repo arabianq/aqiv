@@ -82,7 +82,7 @@ pub mod image_state {
 
     impl ImageState {
         pub fn load_new_image(&mut self, path: &PathBuf) -> Result<bool, Box<dyn Error>> {
-            let (new_img_info, new_color_image) = get_image_info(&path)?;
+            let (new_img_info, new_color_image) = get_image_info(path)?;
 
             if new_img_info.resolution.is_none() {
                 return Ok(false);
@@ -192,12 +192,11 @@ pub fn get_image_info(img_path: &PathBuf) -> Result<(ImageInfo, ColorImage), Box
     };
 
     // Determine default loader based on extension
-    if let Some(ref e) = extension {
-        if let Some(pos) = loaders.par_iter().position_any(|(ext, _)| ext == e) {
+    if let Some(ref e) = extension
+        && let Some(pos) = loaders.par_iter().position_any(|(ext, _)| ext == e) {
             let loader = loaders.remove(pos);
             loaders.insert(0, loader);
         }
-    }
 
     let buf = std::fs::read(&img_path)?;
 
@@ -230,7 +229,7 @@ pub fn get_image_info(img_path: &PathBuf) -> Result<(ImageInfo, ColorImage), Box
 
         let color_image = ColorImage::from_rgba_unmultiplied(
             [image_resolution.0 as usize, image_resolution.1 as usize],
-            &image_bytes,
+            image_bytes,
         );
 
         Ok((

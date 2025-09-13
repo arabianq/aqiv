@@ -16,7 +16,7 @@ struct Args {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    START.call_once(|| magick_wand_genesis());
+    START.call_once(magick_wand_genesis);
 
     let img_path: Option<PathBuf>;
 
