@@ -34,11 +34,11 @@ pub fn calculate_initial_window_size(img_info: &ImageInfo) -> Vec2 {
         let mut initial_window_size = Vec2::new(img_width as f32, img_height as f32);
 
         if initial_window_size.x > screen_size_vec.x {
-            initial_window_size.y *= (screen_size_vec.x / initial_window_size.x);
+            initial_window_size.y *= screen_size_vec.x / initial_window_size.x;
             initial_window_size.x = screen_size_vec.x;
         }
         if initial_window_size.y > screen_size_vec.y {
-            initial_window_size.x *= (screen_size_vec.y / initial_window_size.y);
+            initial_window_size.x *= screen_size_vec.y / initial_window_size.y;
             initial_window_size.y = screen_size_vec.y;
         }
 
